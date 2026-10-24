@@ -1,0 +1,36 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page management-page" data-management="user_file">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-folder-open"></i> 文件空间</h1>
+            <p class="page-subtitle">浏览文件、整理资料，让每一份内容都有清晰的位置</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="dataTable" lay-filter="dataTable"></table>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i> 批量删除</button>
+    </div>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/management-cards.js') }}"></script>
+<script>
+layui.use(['laytpl','table','layer','jquery'],function(){
+    var table=layui.table,layer=layui.layer,$=layui.jquery,xsrf='{{ handler.xsrf_token }}';
+    ManagementCards.render({elem:'#dataTable',url:'/api/user_file',toolbar:'#toolbarDemo',page:{limit:20},defaultToolbar:['filter'],cols:[[{type:'checkbox'},{field:'id',title:'ID',width:70},{field:'username',title:'上传用户',minWidth:120},{field:'file_name',title:'文件名',minWidth:200},{field:'file_type',title:'文件类型',width:100},{field:'file_size',title:'大小(KB)',width:100},{field:'file_path',title:'路径',minWidth:200},{field:'create_at',title:'上传时间',width:170},{fixed:'right',title:'操作',toolbar:'#barDemo',width:100}]]});
+    ManagementCards.on('toolbar(dataTable)',function(obj){if(obj.event==='batchDel'){var d=ManagementCards.checkStatus(obj.config.id).data;if(!d.length)return layer.msg('请选择记录');layer.confirm('确定删除'+d.length+'条？',function(i){$.post('/api/user_file',{action:'batch_delete',ids:d.map(function(x){return x.id}).join(','),_xsrf:xsrf},function(r){layer.close(i);layer.msg(r.msg,{icon:r.code===0?1:2});ManagementCards.reload('dataTable');},'json');});}});
+    ManagementCards.on('tool(dataTable)',function(obj){if(obj.event==='del'){layer.confirm('确定删除？',function(i){$.post('/api/user_file',{action:'delete',id:obj.data.id,_xsrf:xsrf},function(r){layer.close(i);if(r.code===0){obj.del();layer.msg(r.msg,{icon:1});}else layer.msg(r.msg,{icon:2});},'json');});}});
+});
+</script>
+{% end %}

@@ -1,0 +1,155 @@
+/* Shared component contract, loaded after page styles. */
+:root { --control-height: 38px; --duration-400: 400ms; }
+body { overflow-wrap: break-word; }
+button, input, select, textarea { font: inherit; }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button:disabled, .layui-btn-disabled { cursor: not-allowed; opacity: .55; }
+svg.svg-inline--fa { display: inline-block; flex-shrink: 0; vertical-align: -.125em; }
+.admin-page, .page-container, .analysis-page, .page { width: 100%; min-width: 0; overflow: visible; }
+.page-header, .page-header-right, .control-bar, .control-bar-left, .control-bar-right,
+.search-bar, .hero, .hero-actions, .deck-head, .result-toolbar, .result-actions, .btn-bar { min-width: 0; flex-wrap: wrap; }
+.page-header-right, .control-bar-right { max-width: 100%; }
+.page-header-left, .hero > :first-child, .deck-head-left { min-width: 0; }
+.page-title, .hero-title { flex-wrap: wrap; line-height: 1.4; }
+.page-subtitle, .hero-subtitle { line-height: 1.7; }
+.layui-card, .layui-card-body, .card, .card-body, .deck-body { min-width: 0; max-width: 100%; }
+.layui-card-header { height: auto; min-height: 48px; line-height: 1.5; }
+
+/* One size scale for native, Layui and custom action buttons. */
+.layui-btn, .btn, .btn-neo, .btn-primary2, button.btn-ghost, .primary-btn, .mini-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: var(--control-height); height: auto; max-width: 100%; padding: 8px 16px;
+  line-height: 20px; font-size: 13px; font-weight: 500; border-radius: var(--radius);
+  border: 1px solid transparent; vertical-align: middle; white-space: nowrap; flex-shrink: 0;
+  box-shadow: none; animation: none; transition: background-color .15s, border-color .15s, color .15s;
+}
+.layui-btn:not(.layui-btn-primary):not(.layui-btn-danger):not(.layui-btn-warm):not(.layui-btn-disabled), .btn-neo, .btn-primary2 { background: var(--accent); color: #fff; }
+.layui-btn-normal:hover, .btn-neo:hover { background: var(--accent-hover); box-shadow: none; transform: none; }
+.layui-btn-primary { border-color: var(--border); background: var(--surface); color: var(--ink-muted); }
+.layui-btn-warm { border-color: var(--accent-muted); background: var(--accent-subtle); color: var(--accent-text); }
+.layui-btn-danger { border-color: var(--error-bg); background: var(--error-bg); color: var(--error); }
+.layui-btn-danger:hover { background: var(--error); color: #fff; }
+.layui-btn-sm, .btn-sm { min-height: 32px; padding: 5px 12px; font-size: 12px; }
+.layui-btn-xs { min-height: 26px; padding: 2px 8px; font-size: 12px; }
+.layui-btn-lg, .btn-lg { min-height: 44px; padding: 11px 20px; }
+.layui-btn + .layui-btn { margin-left: 0; }
+.layui-btn .layui-icon { margin: 0; font-size: 16px; }
+.layui-btn-container, .btn-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.layui-btn-container .layui-btn { margin: 0; }
+.btn-neo::after { display: none; }
+.btn-primary2::after { display: none; }
+.btn-neo:hover:not(:disabled), .btn-primary2:hover:not(:disabled) { transform: none; box-shadow: none; background: var(--accent-hover); }
+.primary-btn, .mini-btn, button.btn-ghost { background: var(--surface); border-color: var(--border); color: var(--ink-muted); }
+.primary-btn, .mini-btn { min-height: 32px; padding: 5px 12px; font-size: 12px; }
+.primary-btn:hover, .mini-btn:hover, button.btn-ghost:hover { color: var(--accent-text); border-color: var(--accent); background: var(--accent-subtle); }
+.icon-btn { width: 32px; height: 32px; border-radius: var(--radius); }
+.engine-actions { align-items: center; }
+.chat-container { display: flex; flex-direction: column; min-height: 0; }
+.chat-container .chat-box { flex: 1; height: auto; min-height: 0; }
+.chat-container .chat-input-row { flex-shrink: 0; }
+
+/* Form labels can wrap; inline controls never force their container wider. */
+.layui-input, .layui-select, .layui-textarea, .form-input, .form-select, .form-textarea, .form-control {
+  width: 100%; min-width: 0; max-width: 100%; min-height: var(--control-height); padding: 8px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius); color: var(--ink);
+  background-color: var(--surface); font-size: 13px; line-height: 20px;
+}
+.layui-textarea, .form-textarea { min-height: 96px; resize: vertical; }
+.layui-input:disabled, .layui-input[readonly], .layui-textarea:disabled { background: var(--bg-subtle); }
+.layui-input:focus, .layui-textarea:focus, .form-control:focus { border-color: var(--accent); outline: 0; box-shadow: 0 0 0 3px var(--accent-glow); }
+.layui-form-label { box-sizing: border-box; line-height: 20px; }
+.admin-form-container { padding: 20px 24px; overflow: visible; }
+.admin-form-container .layui-form-item { margin-bottom: 18px; }
+.admin-form-container .layui-form-label { width: 104px; padding: 9px 12px 9px 0; white-space: normal; overflow: visible; text-overflow: clip; line-height: 20px; }
+.admin-form-container .layui-input-block { margin-left: 116px; max-width: none; min-width: 0; }
+.layui-form-mid.layui-word-aux, .layui-word-aux { float: none; line-height: 1.6; font-size: 12px; overflow-wrap: anywhere; }
+.layui-form-select .layui-input { padding-right: 32px; cursor: pointer; }
+.layui-form-select dl { max-width: 100%; border-radius: var(--radius); box-shadow: var(--shadow-md); }
+.layui-form-select dl dd { overflow: hidden; text-overflow: ellipsis; }
+.layui-form-radio > i:hover, .layui-form-radioed > i { color: var(--accent); }
+.layui-bg-green { background-color: var(--success) !important; }
+.layui-bg-red { background-color: var(--error) !important; }
+.layui-bg-orange { background-color: var(--warning) !important; color: var(--ink-heavy) !important; }
+.layui-tab-brief > .layui-tab-title .layui-this { color: var(--accent-text); }
+.layui-tab-brief > .layui-tab-title .layui-this::after { border-bottom-color: var(--accent); }
+.layui-form-select.insight-select-up dl { top: auto; bottom: calc(100% + 6px); }
+.layui-form-select:not(.insight-select-up) dl { top: calc(100% + 6px); bottom: auto; }
+.layui-form-checkbox, .layui-form-radio { max-width: 100%; }
+.layui-form-radio > div, .layui-form-checkbox > div { white-space: normal; overflow-wrap: anywhere; }
+.search-bar .layui-input { flex: 0 1 260px; }
+
+/* Layui owns column widths. Extra td padding used to clip action buttons. */
+.layui-table-view { width: 100%; max-width: 100%; overflow: visible; margin: 0; border: 0; }
+.layui-table-view .layui-table { border-radius: 0; border: 0; box-shadow: none; overflow: visible; }
+.layui-table-view .layui-table th, .layui-table-view .layui-table td { padding: 0; }
+.layui-table-view .layui-table-cell { height: 44px; padding: 10px 12px; line-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.layui-table-view .layui-table-cell:has(.layui-btn-xs) { display: flex; align-items: center; flex-wrap: nowrap; gap: 6px; padding: 8px 10px; white-space: nowrap; }
+.layui-table-view .layui-table-cell .layui-btn-xs { margin: 0; flex: 0 0 auto; }
+.layui-table-cell .layui-badge, .layui-table-cell .layui-badge-rim { max-width: 100%; line-height: 20px; height: auto; }
+.layui-table-cell .layui-form-checkbox { margin: 0; }
+.layui-table-main { overscroll-behavior-x: contain; }
+.layui-table-tool { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 0 0 16px; }
+.layui-table-tool-temp { min-width: 0; flex: 1 1 180px; padding: 0; }
+.layui-table-tool-self { position: static; display: flex; gap: 6px; flex: 0 0 auto; }
+.layui-table-tool-self > div { margin: 0; }
+.layui-table-page { height: auto; min-height: 48px; padding: 12px 0 0; white-space: normal; }
+.layui-laypage { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 0; }
+.layui-laypage a, .layui-laypage span { margin: 0; }
+.layui-laypage .layui-laypage-limits, .layui-laypage .layui-laypage-skip { display: inline-flex; align-items: center; gap: 6px; }
+.table-scroll-hint { margin: 0 0 8px; color: var(--ink-muted); font-size: 12px; }
+.table-scroll-hint[hidden] { display: none; }
+
+/* One scrolling modal body and a footer in normal flow. */
+.layui-layer-page, .layui-layer-iframe, .layui-layer-dialog { max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.layui-layer-page { display: flex; flex-direction: column; }
+.layui-layer-title { flex: 0 0 auto; min-height: 52px; height: auto; padding: 16px 56px 16px 24px; line-height: 20px; }
+.layui-layer-page > .layui-layer-content { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+.admin-layer-content { height: auto; flex: 1 1 auto; min-height: 0; overflow: auto; padding-bottom: 8px; }
+.admin-layer-footer { position: static; flex: 0 0 auto; flex-wrap: wrap; padding: 12px 20px; min-height: 58px; overflow: visible; background: var(--surface); }
+.admin-layer-footer .layui-btn { min-height: 34px; }
+.layui-layer-btn { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.layui-layer-btn a { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; height: auto; margin: 0; padding: 7px 16px; line-height: 20px; border-radius: var(--radius); }
+.layui-layer-setwin { top: 18px; right: 20px; }
+
+/* Flexible grids and long content. */
+.grid > *, .model-grid > *, .result-grid > *, .metric-grid > *, .two-col-layout > * { min-width: 0; }
+.grid-auto-fit, .guide-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.metric-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.search-pill { border-radius: var(--radius); min-width: 0; max-width: 100%; }
+.search-pill input { min-width: 0; max-width: 100%; }
+.engine-name, .engine-chip, .engine-meta, .engine-card, .result-title, .result-desc { overflow-wrap: anywhere; }
+.engine-actions, .meta-actions { flex-wrap: wrap; gap: 8px; }
+.analysis-section pre, .msg-bubble, .chat-bubble { overflow-wrap: anywhere; }
+.msg-bubble pre, .chat-bubble pre { max-width: 100%; overflow-x: auto; white-space: pre; }
+.msg-bubble table, .chat-bubble table { display: block; max-width: 100%; overflow-x: auto; }
+.db-config-row .layui-inline { display: flex; align-items: center; flex: 1 1 260px; min-width: 0; max-width: 100%; }
+.db-config-row .layui-input-inline { float: none; flex: 1; min-width: 0; width: auto; margin-right: 0; }
+.db-config-row .layui-form-label { flex: 0 0 100px; }
+
+/* Chat iframe already excludes the app header from its viewport. */
+.dashboard-shell, .chat-shell { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; position: relative; }
+.chat-wrapper, .chat-main, .chat-messages, .history-list, .member-list { min-height: 0; }
+.chat-input-inner, .chat-input-area, .chat-input-inner input, .chat-input-inner textarea { min-width: 0; }
+.chat-input-bar { flex-shrink: 0; }
+.chat-input-inner button, .chat-input-inner .upload-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--radius); box-shadow: none; }
+.chat-input-inner .upload-btn { flex: 0 0 40px; width: 40px; height: 40px; padding: 0; background: var(--bg-subtle); color: var(--ink-muted); border: 1px solid var(--border); }
+.chat-input-inner input, .chat-input-inner textarea { border: 1px solid var(--border); border-radius: var(--radius); }
+.chat-header .group-info { min-width: 0; overflow-wrap: anywhere; }
+.chat-header .back-btn { flex-shrink: 0; }
+.app-shell .layui-body iframe { display: block; }
+.app-shell .layui-body { padding-bottom: 0; }
+.app-shell .layui-layout-left .layui-this::after { background-color: var(--accent); }
+.app-shell .layui-nav-tree .layui-this::after { display: none; }
+.app-shell .layui-nav-tree .layui-this { background: transparent; }
+.app-shell .layui-nav-tree .layui-this > a { box-shadow: inset 3px 0 var(--accent); }
+@media (max-width: 1100px) {
+  .app-shell .layui-layout-left .layui-nav-item a { padding-inline: 10px; }
+  .two-col-layout { grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr); }
+}
+@media (max-width: 900px) {
+  .hero { align-items: flex-start; flex-direction: column; }
+  .hero-actions { width: 100%; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

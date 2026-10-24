@@ -1,0 +1,8 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="session-library" id="sessionLibrary" data-xsrf="{{ handler.xsrf_token }}">
+    <aside class="session-history"><div class="conversation-title"><div><span class="eyebrow">CONVERSATION ARCHIVE</span><h1>会话记录</h1></div></div><form id="sessionSearchForm" class="session-search"><input class="form-input" id="sessionSearch" aria-label="搜索会话" placeholder="搜索标题或用户名"><button class="btn btn-secondary btn-sm">搜索</button></form><div id="sessionList" class="conversation-list"></div><div class="directory-pagination"><button class="btn btn-secondary btn-sm" id="sessionPrev">上一页</button><span id="sessionPage"></span><button class="btn btn-secondary btn-sm" id="sessionNext">下一页</button></div></aside>
+    <section class="session-reader"><header id="sessionHeader" hidden><button class="icon-btn mobile-conversations" id="sessionBack" aria-label="返回会话记录">‹</button><div><h2 id="sessionTitle"></h2><p id="sessionMeta"></p></div><button class="btn btn-danger btn-sm" id="deleteSession">删除会话</button></header><div id="sessionMessages" class="session-messages"><div class="conversation-empty"><div class="empty-chat-icon"><i class="far fa-comment-dots"></i></div><h2>回顾每一次有价值的对话</h2><p>选择左侧会话，在这里阅读完整消息记录。</p></div></div></section>
+</div>
+{% end %}
+{% block script %}<script src="{{ static_url('js/session-library.js') }}"></script>{% end %}

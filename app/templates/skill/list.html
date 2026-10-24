@@ -1,0 +1,562 @@
+{% extends "../base.html" %}
+{% block style %}
+<style>
+    :root {
+        
+        
+        
+        --green: oklch(0.50 0.14 148);
+        --orange: oklch(0.55 0.13 78);
+        --cyan: oklch(0.48 0.12 200);
+        --red: oklch(0.50 0.18 22);
+    }
+    .guide-toggle {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--accent-bg); color: var(--accent-text);
+        border: 1px solid oklch(0.60 0.21 262 / 0.3);
+        padding: 6px 14px; border-radius: 8px; cursor: pointer;
+        font-size: 13px; font-weight: 600; margin-bottom: 12px;
+    }
+    .guide-toggle:hover { background: oklch(0.60 0.21 262 / 0.15); }
+    .usage-guide {
+        display: none; background: var(--surface); border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6); margin-bottom: var(--space-4);
+        box-shadow: var(--shadow-xs);
+    }
+    .usage-guide.show { display: block; }
+    .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 12px; }
+    .guide-card {
+        background: var(--bg-subtle); border: 1px solid var(--border-light); border-radius: var(--radius);
+        padding: var(--space-4); border-left: 4px solid var(--accent);
+    }
+    .guide-card.api { border-left-color: var(--warning); }
+    .guide-card.func { border-left-color: var(--success); }
+    .guide-card.md { border-left-color: var(--info); }
+    .guide-card h5 { margin: 0 0 8px 0; font-size: 14px; color: var(--ink-heavy); }
+    .guide-card p, .guide-card li { font-size: 12px; color: var(--ink); line-height: 1.7; margin: 4px 0; }
+    .guide-card ul { padding-left: 16px; margin: 6px 0; }
+    .guide-card code {
+        background: var(--accent-subtle); color: var(--accent-text); padding: 1px 6px;
+        border-radius: 4px; font-size: 11px; font-family: Consolas, monospace;
+    }
+    .guide-step { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; }
+    .guide-step .step-num {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: var(--accent); color: #fff; font-size: 12px;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .guide-step .step-text { font-size: 13px; color: var(--ink); line-height: 1.6; }
+
+    /* AI 生成区域 */
+    .ai-generate-box {
+        margin-bottom: var(--space-4); padding: var(--space-4);
+        background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 5%, transparent), color-mix(in srgb, var(--accent) 3%, transparent));
+        border-radius: var(--radius-lg); border: 1px dashed color-mix(in srgb, var(--accent) 25%, transparent);
+    }
+    .ai-generate-box .gen-title { font-weight: 700; color: var(--accent-text); font-size: 14px; margin-bottom: 12px; }
+    .ai-generate-box .gen-title i { margin-right: 6px; }
+    .ai-generate-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .ai-generate-row .layui-inline { margin-bottom: 0; }
+    .btn-ai-generate {
+        background: var(--accent) !important; border: none !important;
+        color: #fff !important; font-weight: 700 !important;
+        border-radius: 8px !important; white-space: nowrap;
+    }
+    .btn-ai-generate:hover { opacity: .9; }
+    .gen-separator { margin: var(--space-2) 0; border-top: 1px dashed color-mix(in srgb, var(--accent) 15%, transparent); }
+
+    /* API 配置区域 */
+    .api-config-area {
+        border: 1px solid var(--border-light); border-radius: var(--radius);
+        padding: var(--space-3); background: var(--bg-subtle); margin-bottom: var(--space-2);
+    }
+    .api-section-title { font-weight: 700; font-size: 13px; color: var(--accent-text); margin-bottom: 10px; }
+    .api-section-title i { margin-right: 6px; }
+    .api-hint { font-size: 11px; color: var(--ink-muted); margin-top: 3px; }
+    .api-hint code { background: var(--accent-subtle); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+
+    /* 表单优化 */
+    .form-section { margin-bottom: 12px; }
+    .form-section-label {
+        font-size: 12px; font-weight: 700; color: var(--ink-muted); text-transform: uppercase;
+        letter-spacing: 0.5px; margin-bottom: 8px; padding-bottom: 4px;
+        border-bottom: 1px solid var(--border-light);
+    }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .badge-fc { background: oklch(0.50 0.14 148 / 0.12); color: var(--success); }
+    .badge-api { background: oklch(0.55 0.13 78 / 0.12); color: var(--warning); }
+    .badge-md { background: oklch(0.48 0.12 200 / 0.12); color: var(--info); }
+</style>
+{% end %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-magic"></i> 技能管理</h1>
+            <p class="page-subtitle">定义AI技能，挂载到数字员工。支持外部API真实调用和Skill.md提示词模板两种模式</p>
+        </div>
+    </div>
+
+    <!-- ============ 使用指南 ============ -->
+    <div class="admin-toolbar" style="margin-bottom:10px;">
+        <span class="guide-toggle" onclick="toggleGuide()" style="background:var(--accent-bg);color:var(--accent-text);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);">
+            <i class="layui-icon layui-icon-read"></i> 使用指南
+            <i class="layui-icon layui-icon-down" id="guideArrow"></i>
+        </span>
+    </div>
+    <div class="usage-guide" id="usageGuide">
+        <h4 style="margin-top:0;color:var(--accent-text);">技能系统使用指南</h4>
+
+        <div class="guide-grid">
+            <!-- function_call -->
+            <div class="guide-card api">
+                <h5><span class="badge badge-api">function_call</span> 外部API调用（真实请求）</h5>
+                <p>真实发起HTTP请求调用外部API，适合<strong>查词典、查百科、查天气、查数据、翻译</strong>等需要实时数据的任务。</p>
+                <div class="guide-step"><span class="step-num">1</span><span class="step-text">API地址中用 <code>{query}</code> 占位，系统自动替换为用户输入</span></div>
+                <div class="guide-step"><span class="step-num">2</span><span class="step-text">GET请求：URL加参数 <code>?word={query}</code>；POST请求：在请求体模板中用 <code>{query}</code></span></div>
+                <div class="guide-step"><span class="step-num">3</span><span class="step-text">响应字段：写JSON路径，如 <code>data</code> 或 <code>data.result.content</code></span></div>
+                <p style="margin-top:8px;color:var(--ink-muted);font-size:11px;">📌 适合场景：英语词典、百科查询、天气查询、数据分析、AI对话API</p>
+            </div>
+
+            <!-- skill.md -->
+            <div class="guide-card md">
+                <h5><span class="badge badge-md">skill.md</span> 提示词模板</h5>
+                <p>为数字员工预设回复模板和行为规则，适合<strong>客服、咨询、报告生成、专业分析</strong>等对话型任务。</p>
+                <div class="guide-step"><span class="step-num">1</span><span class="step-text">在 <code>description</code> 中描述技能用途和规则</span></div>
+                <div class="guide-step"><span class="step-num">2</span><span class="step-text">在 <code>execute_code</code> 中写入 <code>SYSTEM_PROMPT</code> 模板</span></div>
+                <div class="guide-step"><span class="step-num">3</span><span class="step-text">数字员工回复时会按模板风格输出</span></div>
+                <p style="margin-top:8px;color:var(--ink-muted);font-size:11px;">📌 适合场景：专业客服、格式报告、翻译润色、代码审查、数据分析建议</p>
+            </div>
+        </div>
+
+        <h5 style="margin:16px 0 8px;color:var(--accent-text);">🚀 推荐：使用「AI 智能生成」快速创建技能</h5>
+        <div class="guide-step"><span class="step-num">1</span><span class="step-text">选 AI 模型 → 选技能类型 → 填分类 → 用自然语言描述需求</span></div>
+        <div class="guide-step"><span class="step-num">2</span><span class="step-text">点击「AI 智能生成」，AI 自动填写所有表单字段</span></div>
+        <div class="guide-step"><span class="step-num">3</span><span class="step-text"><strong>检查并修改</strong> AI 生成的内容（尤其是 API 地址和响应路径）</span></div>
+        <div class="guide-step"><span class="step-num">4</span><span class="step-text">保存 → 在「数字员工管理」中把技能绑定到员工 → 在群聊中 @员工 即可使用</span></div>
+
+        <h5 style="margin:16px 0 8px;color:var(--accent-text);">📋 API 类型填写示例（英语词典）</h5>
+        <table class="layui-table" style="font-size:12px;margin-bottom:0;">
+            <thead><tr><th>字段</th><th>填写内容</th><th>说明</th></tr></thead>
+            <tbody>
+                <tr><td>API地址</td><td><code>https://api.52vmy.cn/api/wl/word?word={query}</code></td><td>用 {query} 占位用户输入的单词</td></tr>
+                <tr><td>请求方法</td><td>GET</td><td>大多数查询类API用GET</td></tr>
+                <tr><td>请求头</td><td><code>{}</code> 或留空</td><td>无需鉴权的API不用填</td></tr>
+                <tr><td>请求体模板</td><td>留空</td><td>GET请求不需要请求体</td></tr>
+                <tr><td>响应字段</td><td><code>data</code></td><td>提取JSON中的data字段</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============ 技能列表 ============ -->
+    <div class="employee-directory-toolbar"><input id="skillSearch" class="form-input" aria-label="搜索技能" placeholder="搜索技能名称或描述"><div class="catalog-filters" id="skillFilters"><button class="is-active" data-type="all">全部技能</button><button data-type="function_call">接口工具</button><button data-type="skill.md">提示词技能</button></div><button class="btn btn-primary" id="addSkill">＋ 创建技能</button></div>
+    <div id="skillGrid" class="employee-grid" aria-live="polite"></div>
+    <div class="directory-pagination"><button class="btn btn-secondary btn-sm" id="skillPrev">上一页</button><span id="skillPage"></span><button class="btn btn-secondary btn-sm" id="skillNext">下一页</button></div>
+</div>
+
+<script type="text/html" id="formTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container" lay-filter="dataForm">
+            <input type="hidden" name="id">
+            <input type="hidden" name="action" id="formAction">
+            <input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+
+            <!-- AI 智能生成区域 -->
+            <div class="ai-generate-box" id="aiGenArea">
+                <div class="gen-title"><i class="layui-icon layui-icon-util"></i>🤖 AI 智能生成 — 用自然语言描述需求，AI 自动填写表单</div>
+                <div class="ai-generate-row">
+                    <div class="layui-inline" style="width:28%;min-width:150px;">
+                        <select name="ai_model_id" id="aiModelId" lay-filter="aiModel">
+                            <option value="">选择AI模型</option>
+                        </select>
+                    </div>
+                    <div class="layui-inline" style="width:20%;min-width:130px;">
+                        <select name="ai_skill_type" id="aiSkillType">
+                            <option value="">选择类型</option>
+                            <option value="function_call">function_call（外部API调用）</option>
+                            <option value="skill.md">skill.md（提示词模板）</option>
+                        </select>
+                    </div>
+                    <div class="layui-inline" style="width:15%;min-width:100px;">
+                        <input type="text" id="aiCategory" placeholder="分类(如tool)" class="layui-input">
+                    </div>
+                </div>
+                <div class="gen-separator"></div>
+                <div class="layui-form-item" style="margin-bottom:8px;">
+                    <label class="layui-form-label" style="width:75px;">生成要求</label>
+                    <div class="layui-input-block" style="margin-left:105px;">
+                        <textarea id="aiDescription" placeholder="用自然语言描述需求&#10;例如：创建一个英语词典查询技能，调用 https://api.52vmy.cn/api/wl/word 接口，用户输入单词即可查询释义和例句" class="layui-textarea" rows="3"></textarea>
+                        <div class="api-hint">💡 如果已知API信息，在下方「API详细提示」区域填写，AI会更准确</div>
+                    </div>
+                </div>
+                <!-- API 详细提示字段（帮助AI更准确生成API配置） -->
+                <details class="form-advanced">
+                <summary>补充 API 提示（选填）</summary>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div class="layui-form-item" style="margin-bottom:6px;">
+                        <label class="layui-form-label" style="width:85px;padding:6px 8px;">请求方式</label>
+                        <div class="layui-input-block" style="margin-left:110px;">
+                            <select id="aiMethodHint">
+                                <option value="">不限</option>
+                                <option value="GET">GET（查询类）</option>
+                                <option value="POST">POST（提交类）</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item" style="margin-bottom:6px;">
+                        <label class="layui-form-label" style="width:85px;padding:6px 8px;">返回格式</label>
+                        <div class="layui-input-block" style="margin-left:110px;">
+                            <select id="aiResponseFormat">
+                                <option value="">不限</option>
+                                <option value="JSON">JSON</option>
+                                <option value="XML">XML</option>
+                                <option value="HTML">HTML</option>
+                                <option value="TEXT">纯文本</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="margin-bottom:6px;">
+                    <label class="layui-form-label" style="width:85px;padding:6px 8px;">请求示例</label>
+                    <div class="layui-input-block" style="margin-left:110px;">
+                        <input type="text" id="aiRequestExample" class="layui-input" placeholder="https://api.example.com/weather?city={query}">
+                        <div class="api-hint">完整的API请求URL示例</div>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="margin-bottom:6px;">
+                    <label class="layui-form-label" style="width:85px;padding:6px 8px;">参数说明</label>
+                    <div class="layui-input-block" style="margin-left:110px;">
+                        <input type="text" id="aiParamDesc" class="layui-input" placeholder="city:城市名, type:forecast表示预报">
+                        <div class="api-hint">列出API支持的参数及含义</div>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="margin-bottom:8px;">
+                    <label class="layui-form-label" style="width:85px;padding:6px 8px;">返回示例</label>
+                    <div class="layui-input-block" style="margin-left:110px;">
+                        <textarea id="aiResponseExample" class="layui-textarea" rows="2"
+                            placeholder='{"code":200,"data":{"city":"成都","forecast":[{"date":"2026-06-12","weather":"晴"}]}}'
+                            style="font-family:Consolas,monospace;font-size:11px;"></textarea>
+                        <div class="api-hint">粘贴API返回的JSON示例（帮助AI理解数据结构）</div>
+                    </div>
+                </div>
+                </details>
+                <button type="button" class="layui-btn layui-btn-sm btn-ai-generate" id="aiGenBtn">
+                    <i class="layui-icon layui-icon-util"></i> AI 智能生成
+                </button>
+            </div>
+
+            <!-- ===== 基本信息（所有类型共用） ===== -->
+            <div class="form-section">
+                <div class="form-section-label">📌 基本信息</div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">技能名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required class="layui-input" placeholder="简洁明了的名称，如：英语词典查询、网页内容提取">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">技能类型</label>
+                <div class="layui-input-block">
+                    <select name="skill_type" id="skillTypeSelect" lay-filter="skillType">
+                        <option value="function_call">function_call（外部API调用）</option>
+                        <option value="skill.md">skill.md（提示词模板）</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">分类</label>
+                <div class="layui-input-block">
+                    <input type="text" name="category" class="layui-input" placeholder="如：tool / search / api / data / code / dict / translate">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">功能描述</label>
+                <div class="layui-input-block">
+                    <textarea name="description" class="layui-textarea" rows="2" placeholder="描述技能的功能、使用场景和预期效果。例如：通过外部API查询英语单词的释义、音标、例句和词源"></textarea>
+                </div>
+            </div>
+
+            <!-- ===== skill.md 字段 ===== -->
+            <div id="traditionalFields">
+                <div class="form-section"><div class="form-section-label">⚙️ 技能定义</div></div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">参数定义</label>
+                    <div class="layui-input-block">
+                        <textarea name="parameters" id="paramEditor" class="layui-textarea" rows="5"
+                            placeholder='{"type":"object","properties":{"url":{"type":"string","description":"目标URL"}},"required":["url"]}'
+                            style="font-family:Consolas,monospace;font-size:12px;"></textarea>
+                        <div class="api-hint">JSON Schema 格式，定义输入参数的类型和说明</div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">执行代码</label>
+                    <div class="layui-input-block">
+                        <textarea name="execute_code" class="layui-textarea" rows="6"
+                            placeholder="# skill.md: 写入 SYSTEM_PROMPT 模板&#10;&#10;SYSTEM_PROMPT = '''你是一个专业的...'''"
+                            style="font-family:Consolas,monospace;font-size:12px;"></textarea>
+                        <div class="api-hint">skill.md: 写入SYSTEM_PROMPT提示词模板</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== function_call 字段 ===== -->
+            <div id="apiFields" style="display:none;">
+                <div class="form-section"><div class="form-section-label">🔌 外部API配置</div></div>
+                <div class="api-config-area">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label" style="width:105px;">API地址</label>
+                        <div class="layui-input-block" style="margin-left:135px;">
+                            <input type="text" name="api_url" class="layui-input" placeholder="https://api.example.com/endpoint?key={query}">
+                            <div class="api-hint">📍 用 <code>{query}</code> 占位用户输入，系统会自动替换。也支持 <code>{keyword}</code> <code>{word}</code></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label" style="width:105px;">请求方法</label>
+                        <div class="layui-input-block" style="margin-left:135px;">
+                            <select name="api_method">
+                                <option value="GET">GET — 用于查询类API</option>
+                                <option value="POST">POST — 用于提交类API</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label" style="width:105px;">请求头</label>
+                        <div class="layui-input-block" style="margin-left:135px;">
+                            <textarea name="api_headers" class="layui-textarea" rows="2"
+                                placeholder='{}（无需鉴权时留空或填 {}）'
+                                style="font-family:Consolas,monospace;font-size:12px;"></textarea>
+                            <div class="api-hint">JSON格式，如 <code>{"Authorization":"Bearer sk-xxx"}</code>。公开API无需填写</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label" style="width:105px;">请求体模板</label>
+                        <div class="layui-input-block" style="margin-left:135px;">
+                            <textarea name="api_body_template" class="layui-textarea" rows="3"
+                                placeholder='{"messages":[{"role":"user","content":"{query}"}],"model":"gpt-3.5"}'
+                                style="font-family:Consolas,monospace;font-size:12px;"></textarea>
+                            <div class="api-hint">POST请求时填写，<code>{query}</code> 会替换为用户输入。GET请求留空</div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label" style="width:105px;">响应字段</label>
+                        <div class="layui-input-block" style="margin-left:135px;">
+                            <input type="text" name="api_response_path" class="layui-input" placeholder="data（用.分隔嵌套路径，如 data.result.content）">
+                            <div class="api-hint">从API返回的JSON中提取数据的路径。留空则自动提取最可能的字段</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">启用状态</label>
+                <div class="layui-input-block">
+                    <select name="is_active">
+                        <option value="1">✅ 启用</option>
+                        <option value="0">⏸️ 停用</option>
+                    </select>
+                </div>
+            </div>
+            <button class="layui-hide" lay-submit lay-filter="saveData" id="realSaveBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveBtn').click()">保存保存</button>
+        <button class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['form','layer','jquery'],function(){
+    var form=layui.form,layer=layui.layer,$=layui.jquery,xsrf='{{ handler.xsrf_token }}';
+    var allModels = [];
+
+    // ===== 使用指南折叠 =====
+    window.toggleGuide = function(){
+        var g = $('#usageGuide');
+        var arrow = $('#guideArrow');
+        g.toggleClass('show');
+        arrow.toggleClass('layui-icon-down layui-icon-up');
+    };
+
+    var skillRows=[], skillPage=1, skillTotal=0, skillFilter='all';
+    function escapeText(value){return $('<span>').text(value == null ? '' : String(value)).html();}
+    function renderSkills(){
+        var q=$('#skillSearch').val().trim().toLowerCase(), grid=$('#skillGrid').empty();
+        skillRows.forEach(function(e){
+            var card=$('<article class="employee-profile"></article>');
+            card.html('<div class="employee-profile-top"><span class="person-avatar employee">'+(e.skill_type==='skill.md'?'MD':'API')+'</span><h2>'+escapeText(e.name)+'</h2><span class="profile-status '+(e.is_active==1?'':'paused')+'">'+(e.is_active==1?'已启用':'已停用')+'</span></div><p>'+escapeText(e.description||'暂无技能说明')+'</p><div class="employee-meta"><span>'+escapeText(e.skill_type==='skill.md'?'提示词技能':'接口工具')+' · '+escapeText(e.category||'通用')+'</span></div><footer><button class="btn btn-secondary btn-sm" data-edit>编辑技能</button><a class="btn btn-ghost btn-sm" href="/digital_employee/list">分配给员工</a><button class="btn btn-danger btn-sm" data-delete>删除</button></footer>');
+            card.find('[data-edit]').on('click',function(){openForm('edit',e);});
+            card.find('[data-delete]').on('click',function(){layer.confirm('确定删除技能「'+escapeText(e.name)+'」？',function(i){$.post('/api/skill',{action:'delete',id:e.id,_xsrf:xsrf},function(r){layer.close(i);if(r.code===0)loadSkills();else layer.msg(r.msg);},'json').fail(function(){layer.msg('删除失败，请稍后重试');});});});
+            grid.append(card);
+        });
+        if(!grid.children().length)grid.append($('<p class="messenger-status"></p>').text('暂无匹配的技能，可以创建新的工具或提示词技能。'));
+        $('#skillPage').text(skillPage+' / '+Math.max(1,Math.ceil(skillTotal/24)));$('#skillPrev').prop('disabled',skillPage<=1);$('#skillNext').prop('disabled',skillPage*24>=skillTotal);
+    }
+    var listRequest=0;
+    function loadSkills(){
+        var currentRequest=++listRequest;
+        $.get('/api/skill',{page:skillPage,limit:24,keyword:$('#skillSearch').val().trim(),skill_type:skillFilter==='all'?'':skillFilter},function(r){if(currentRequest!==listRequest)return;if(r.code!==0)return layer.msg(r.msg);skillRows=r.data;skillTotal=r.count;if(!skillRows.length&&skillPage>1){skillPage--;return loadSkills();}renderSkills();},'json').fail(function(){$('#skillGrid').html('<p class="interaction-error">技能库加载失败，请刷新重试。</p>');});
+    }
+    var searchTimer;$('#skillSearch').on('input',function(){clearTimeout(searchTimer);searchTimer=setTimeout(function(){skillPage=1;loadSkills();},250);});$('#addSkill').on('click',function(){openForm('add',{});});
+    $('#skillFilters button').on('click',function(){skillFilter=this.dataset.type;$('#skillFilters button').removeClass('is-active');$(this).addClass('is-active');skillPage=1;loadSkills();});
+    $('#skillPrev').on('click',function(){skillPage--;loadSkills();});$('#skillNext').on('click',function(){skillPage++;loadSkills();});loadSkills();
+
+    // ===== 打开表单 =====
+    function openForm(act, data){
+        var isAdd = (act === 'add');
+        var title = isAdd ? '✨ 新增技能' : '✏️ 编辑技能 - ' + (data.name || '');
+        var areaH = isAdd ? '820px' : '620px';
+
+        layer.open({type:1,title:title,area:['820px', areaH],content:$('#formTpl').html(),success:function(layero,idx){
+            $('#formAction').val(act);
+            form.val('dataForm',{id:data.id||''});
+
+            form.on('select(skillType)', function(obj){
+                switchSkillFields(obj.value);
+            });
+
+            if(!isAdd){
+                // 编辑模式：隐藏AI生成区
+                $('#aiGenArea').hide();
+                var st = data.skill_type || 'function_call';
+                form.val('dataForm',{
+                    name: data.name,
+                    skill_type: st,
+                    category: data.category || 'tool',
+                    description: data.description || '',
+                    parameters: data.parameters || '',
+                    execute_code: data.execute_code || '',
+                    api_url: data.api_url || '',
+                    api_method: data.api_method || 'POST',
+                    api_headers: data.api_headers || '{}',
+                    api_body_template: data.api_body_template || '',
+                    api_response_path: data.api_response_path || '',
+                    is_active: data.is_active
+                });
+                switchSkillFields(st);
+            } else {
+                // 新增模式：显示AI生成区，默认 function_call
+                $('#aiGenArea').show();
+                loadAiModels();
+                $('#aiGenBtn').off('click').on('click', function(){ aiGenerateSkill(); });
+                switchSkillFields('function_call');
+            }
+
+            form.render('select');
+
+            // 保存提交
+            form.on('submit(saveData)', function(fd){
+                $.post('/api/skill', fd.field, function(r){
+                    if(r.code===0){layer.close(idx);layer.msg(r.msg,{icon:1});loadSkills();}
+                    else layer.msg(r.msg,{icon:2});
+                },'json');
+                return false;
+            });
+        }});
+    }
+
+    // ===== 切换字段显示 =====
+    function switchSkillFields(type){
+        if(type === 'function_call'){
+            $('#traditionalFields').hide();
+            $('#apiFields').show();
+        } else {
+            $('#traditionalFields').show();
+            $('#apiFields').hide();
+        }
+    }
+
+    // ===== 加载AI模型列表 =====
+    function loadAiModels(){
+        if(allModels.length > 0){ fillModelSelect(); return; }
+        $.get('/api/model_engine', function(res){
+            if(res.code===0) allModels = res.data||[];
+            fillModelSelect();
+        },'json');
+    }
+    function fillModelSelect(){
+        var sel = $('#aiModelId');
+        sel.empty().append('<option value="">选择AI模型</option>');
+        $.each(allModels, function(i,m){
+            sel.append('<option value="'+m.id+'">'+m.name+' ('+m.model_name+')</option>');
+        });
+        form.render('select');
+    }
+
+    // ===== AI 智能生成 =====
+    function aiGenerateSkill(){
+        var modelId = $('#aiModelId').val();
+        var skillType = $('#aiSkillType').val();
+        var category = $('#aiCategory').val().trim();
+        var desc = $('#aiDescription').val().trim();
+        // API 详细提示字段
+        var apiMethodHint = $('#aiMethodHint').val() || '';
+        var apiResponseFormat = $('#aiResponseFormat').val() || '';
+        var apiRequestExample = $('#aiRequestExample').val().trim();
+        var apiParamDesc = $('#aiParamDesc').val().trim();
+        var apiResponseExample = $('#aiResponseExample').val().trim();
+
+        if(!modelId) return layer.msg('请先选择AI模型（在模型引擎中配置）',{icon:0});
+        if(!skillType) return layer.msg('请选择技能类型',{icon:0});
+        if(!category) return layer.msg('请填写分类（如 tool / api / search）',{icon:0});
+        if(!desc) return layer.msg('请填写生成要求，描述你想要创建什么技能',{icon:0});
+
+        // 如果是 function_call 类型，提前切换表单
+        if(skillType === 'function_call'){
+            $('#skillTypeSelect').val('function_call');
+            switchSkillFields('function_call');
+            form.render('select');
+        } else {
+            $('#skillTypeSelect').val('skill.md');
+            switchSkillFields('skill.md');
+            form.render('select');
+        }
+
+        var loadIdx = layer.load(1, {shade:[0.3,'#000']});
+        $.post('/api/skill/ai_generate',{
+            model_id: modelId,
+            skill_type: skillType,
+            category: category,
+            description: desc,
+            api_method_hint: apiMethodHint,
+            api_response_format: apiResponseFormat,
+            api_request_example: apiRequestExample,
+            api_param_desc: apiParamDesc,
+            api_response_example: apiResponseExample,
+            _xsrf: xsrf
+        }, function(r){
+            layer.close(loadIdx);
+            if(r.code===0){
+                var d = r.data;
+                $('input[name="name"]').val(d.name||'');
+                $('textarea[name="description"]').val(d.description||'');
+                $('textarea[name="parameters"]').val(d.parameters||'{}');
+
+                if(skillType === 'function_call'){
+                    // 回填 API 专属字段
+                    $('input[name="api_url"]').val(d.api_url||'');
+                    $('select[name="api_method"]').val(d.api_method||'GET');
+                    $('textarea[name="api_headers"]').val(d.api_headers||'{}');
+                    $('textarea[name="api_body_template"]').val(d.api_body_template||'');
+                    $('input[name="api_response_path"]').val(d.api_response_path||'');
+                    $('textarea[name="execute_code"]').val('');
+                } else {
+                    $('textarea[name="execute_code"]').val(d.execute_code||'');
+                }
+                form.render('select');
+                layer.msg(r.msg||'AI生成完成！请仔细检查并修改后保存',{icon:1,time:2500});
+            } else {
+                layer.msg(r.msg||'AI生成失败，请重试',{icon:2,time:3000});
+            }
+        },'json').fail(function(){
+            layer.close(loadIdx);
+            layer.msg('网络请求失败，请检查服务器连接',{icon:2});
+        });
+    }
+});
+</script>
+{% end %}

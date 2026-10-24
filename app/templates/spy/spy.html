@@ -1,0 +1,597 @@
+{% extends "../base.html" %}
+{% block style %}
+<style>
+        :root{
+            --text:var(--ink);
+            --muted:var(--ink-muted);
+            --faint:oklch(0.75 0.008 25);
+            --primary:var(--accent);
+            --primary-dark:var(--accent);
+            --red: var(--error);
+            --shadow:0 4px 24px rgba(0,0,0,.04);
+            --shadow-lg:0 12px 48px rgba(0,0,0,.06);
+        }
+        body{
+            margin:0;
+            min-height:100vh;
+            color:var(--ink);
+            background:var(--bg);
+            overflow-x:hidden;
+        }
+        body::before{
+            content:"";
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+            background:
+                radial-gradient(800px 400px at 20% 15%, color-mix(in srgb, var(--accent) 3%, transparent), transparent 55%),
+                radial-gradient(800px 400px at 80% 75%, color-mix(in srgb, var(--accent) 2%, transparent), transparent 55%);
+            opacity:.6;
+        }
+        .page{ position:relative; padding:24px; max-width:1180px; margin:0 auto; }
+        .hero{
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:16px;
+            padding:20px 22px 18px;
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            background:var(--surface);
+            box-shadow:var(--shadow);
+            position:relative;
+            overflow:hidden;
+            margin-bottom:16px;
+            animation: fadeInUp .6s ease-out;
+        }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .hero::before{
+            content:"";
+            position:absolute;
+            top:0;left:0;right:0;
+            height:3px;
+            background:var(--accent);
+        }
+        .hero>*{ position:relative; }
+        .hero-eyebrow{
+            letter-spacing:.12em;
+            font-size:11px;
+            color:var(--ink-muted);
+        }
+        .hero-title{
+            margin-top:6px;
+            font-size:28px;
+            font-weight:800;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            color:var(--ink);
+        }
+        .hero-subtitle{ margin-top:7px; font-size:13px; color:var(--ink-muted); }
+        .hero-actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+        .search-pill{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            height:44px;
+            padding:0 16px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:var(--bg-subtle);
+        }
+        .search-pill i{ color:var(--ink-muted); }
+        .search-pill input{
+            width:360px;
+            max-width:58vw;
+            background:transparent;
+            border:none;
+            outline:none;
+            color:var(--ink);
+            font-size:14px;
+        }
+        .btn-neo{
+            height:44px;
+            padding:0 18px;
+            border-radius:999px;
+            border:none;
+            color:#fff;
+            font-weight:700;
+            background:var(--accent);
+            background-size: 200% auto;
+            box-shadow:0 6px 20px color-mix(in srgb, var(--accent) 25%, transparent);
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            transition:transform .25s ease,box-shadow .25s ease;
+            cursor:pointer;
+            animation: pulseAccent 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes pulseAccent{ 0%,100%{ box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 25%, transparent); } 50%{ box-shadow: 0 6px 28px color-mix(in srgb, var(--accent) 40%, transparent),0 0 0 6px color-mix(in srgb, var(--accent) 4%, transparent); } }
+        .btn-neo::after{ content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.2); transform:translate(-50%,-50%); transition:width .5s,height .5s; }
+        .btn-neo:active::after{ width:300px; height:300px; }
+        .btn-neo:disabled{ opacity:.6; cursor:not-allowed; animation: none; }
+        .btn-neo:hover:not(:disabled){ box-shadow:0 10px 30px color-mix(in srgb, var(--accent) 35%, transparent); transform:translateY(-2px); }
+
+        .search-deck{ border-color:color-mix(in srgb, var(--accent) 15%, transparent); }
+        .search-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+        .search-row .search-pill{ flex:1; }
+        @media(max-width:680px){
+            .search-row{ flex-direction:column; align-items:stretch; }
+            .search-row .btn-neo{ width:100%; justify-content:center; }
+        }
+
+        .deck{
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            background:var(--surface);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+            margin-top:14px;
+            animation: fadeInUp .5s ease-out;
+        }
+        .deck-head{
+            padding:14px 18px 12px;
+            border-bottom:1px solid var(--border);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+        }
+        .deck-head-left{ display:flex; align-items:center; gap:10px; color:var(--ink); font-size:13px; font-weight:600; }
+        .dot{ width:8px; height:8px; border-radius:99px; background:var(--accent); box-shadow:0 0 12px color-mix(in srgb, var(--accent) 30%, transparent); }
+        .deck-head-right{
+            color:var(--ink-muted);
+            font-size:12px;
+            padding:6px 12px;
+            border:1px solid var(--border);
+            border-radius:999px;
+            background:var(--bg-subtle);
+        }
+        .deck-body{ padding:16px 18px 18px; }
+
+        .source-chips{ display:flex; flex-wrap:wrap; gap:10px; }
+        .source-chip{
+            padding:8px 16px;
+            border-radius:999px;
+            background:var(--bg-subtle);
+            border:1px solid var(--border);
+            color:var(--ink);
+            cursor:pointer;
+            font-size:13px;
+            font-weight:500;
+            transition:transform .14s ease,border-color .14s ease,background .14s ease;
+            user-select:none;
+        }
+        .source-chip:hover{ transform:translateY(-1px); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 4%, transparent); }
+        .source-chip.active{ background:color-mix(in srgb, var(--accent) 8%, transparent); border-color:var(--accent); color:var(--accent); font-weight:600; }
+
+        .params-row{
+            display:grid;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:12px;
+            margin-top:14px;
+            padding-top:12px;
+            border-top:1px dashed var(--border);
+        }
+        @media(max-width:680px){ .params-row{ grid-template-columns:repeat(1,minmax(0,1fr)); } }
+        .param-item label{ display:block; color:var(--ink-muted); font-size:12px; margin-bottom:6px; font-weight:500; }
+        .param-item input{
+            width:100%;
+            height:40px;
+            background:var(--bg-subtle);
+            border:1px solid var(--border);
+            color:var(--ink);
+            padding:8px 14px;
+            border-radius:var(--radius-sm);
+            outline:none;
+            transition:border .2s ease;
+        }
+        .param-item input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 6%, transparent); }
+
+        .log-panel{
+            display:none;
+            margin-top:12px;
+            background:var(--bg-subtle);
+            border:1px solid var(--border);
+            border-radius:var(--radius);
+            padding:12px 14px;
+            height:240px;
+            overflow-y:auto;
+            font-size:12px;
+            color:var(--ink-muted);
+        }
+        .log-item{ margin-bottom:6px; }
+        .log-item.info{ color:var(--accent); }
+        .log-item.success{ color:oklch(0.55 0.16 150); }
+        .log-item.error{ color:var(--red); }
+
+        .result-panel{ display:none; margin-top:14px; }
+        .result-toolbar{ display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+        .result-stats{ color:var(--ink-muted); font-size:13px; }
+        .result-actions{ display:flex; gap:10px; align-items:center; }
+        .btn-ghost{
+            height:38px;
+            padding:0 14px;
+            border-radius:var(--radius-sm);
+            background:var(--surface);
+            border:1px solid var(--border);
+            color:var(--ink);
+            cursor:pointer;
+            font-weight:500;
+            transition:all .14s ease;
+        }
+        .btn-ghost:hover{ border-color:var(--accent); color:var(--accent); }
+        .btn-primary2{
+            height:38px;
+            padding:0 16px;
+            border-radius:var(--radius-sm);
+            border:none;
+            background:var(--accent);
+            color:#fff;
+            font-weight:700;
+            cursor:pointer;
+            transition:all .25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary2::after{ content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.2); transform:translate(-50%,-50%); transition:width .5s,height .5s; }
+        .btn-primary2:active::after{ width:300px; height:300px; }
+        .btn-primary2:disabled{ opacity:.55; cursor:not-allowed; }
+        .btn-primary2:hover:not(:disabled){ box-shadow:0 4px 14px color-mix(in srgb, var(--accent) 25%, transparent); transform:translateY(-1px); }
+
+        .result-grid{
+            display:grid;
+            grid-template-columns:repeat(3,minmax(0,1fr));
+            gap:14px;
+        }
+        @media(max-width:1200px){ .result-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media(max-width:680px){ .result-grid{ grid-template-columns:repeat(1,minmax(0,1fr)); } }
+
+        .result-card{
+            position:relative;
+            border-radius:var(--radius);
+            border:1px solid var(--border);
+            background:var(--surface);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+            transition:transform .18s ease,box-shadow .18s ease;
+            display:flex;
+            flex-direction:column;
+            min-height:280px;
+            animation: slideInLeft .4s ease-out;
+        }
+        @keyframes slideInLeft { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
+        .result-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+        .result-card.committed{
+            border-color:color-mix(in srgb, var(--accent) 25%, transparent);
+            box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent) inset;
+        }
+
+        .result-check{ position:absolute; right:12px; top:12px; z-index:2; }
+        .result-cover{
+            height:110px;
+            border-bottom:1px solid var(--border);
+            background:linear-gradient(135deg, var(--bg-subtle) 0%, oklch(0.96 0.003 25) 100%);
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-between;
+            padding:12px;
+        }
+        .cover-badge{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid var(--border);
+            background:rgba(255,255,255,.7);
+            color:var(--ink);
+            font-size:12px;
+            font-weight:500;
+        }
+        .cover-badge i{ color:var(--accent); }
+        .cover-chip{
+            padding:6px 10px;
+            border-radius:999px;
+            border:1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+            background:color-mix(in srgb, var(--accent) 6%, transparent);
+            color:var(--accent);
+            font-weight:700;
+            font-size:12px;
+        }
+
+        .result-body{ padding:14px; display:flex; flex-direction:column; gap:10px; flex:1; }
+        .result-title{
+            color:var(--ink);
+            font-weight:700;
+            font-size:14px;
+            line-height:1.4;
+            margin-right:28px;
+            display:-webkit-box;
+            -webkit-line-clamp:2;
+            -webkit-box-orient:vertical;
+            overflow:hidden;
+        }
+        .result-title a{ color:inherit; text-decoration:none; }
+        .result-title a:hover{ color:var(--accent); text-decoration:underline; }
+        .result-link{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:12px;
+            color:var(--ink-muted);
+            border:1px solid var(--border);
+            background:var(--bg-subtle);
+            border-radius:var(--radius-sm);
+            padding:9px 10px;
+            overflow:hidden;
+        }
+        .result-link i{ color:var(--accent); }
+        .result-link a{ color:inherit; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .result-link a:hover{ text-decoration:underline; }
+        .result-summary{
+            color:var(--ink-muted);
+            font-size:12px;
+            line-height:1.6;
+            display:-webkit-box;
+            -webkit-line-clamp:4;
+            -webkit-box-orient:vertical;
+            overflow:hidden;
+        }
+        .result-meta{
+            margin-top:auto;
+            padding-top:10px;
+            border-top:1px dashed var(--border);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            color:var(--ink-muted);
+            font-size:12px;
+        }
+        .meta-left{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .meta-actions{ display:flex; gap:8px; align-items:center; }
+        .mini-btn{
+            height:30px;
+            padding:0 10px;
+            border-radius:8px;
+            border:1px solid var(--border);
+            background:var(--surface);
+            color:var(--ink);
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+            cursor:pointer;
+            font-size:12px;
+            font-weight:500;
+            transition:all .14s ease;
+        }
+        .mini-btn:hover{ border-color:var(--accent); color:var(--accent); background:color-mix(in srgb, var(--accent) 4%, transparent); }
+        .mini-btn.success:hover{ border-color:oklch(0.55 0.16 150); color:oklch(0.55 0.16 150); background:oklch(0.55 0.16 150 / 0.04); }
+    </style>
+{% end %}
+{% block body %}
+<div class="collector-page">
+    <header class="collector-header"><div><span class="eyebrow">INTELLIGENCE COLLECTION</span><h1>发现值得关注的信息</h1><p>搜索一个主题，选择信息来源，把有价值的内容收进资料库。</p></div><a href="/data_warehouse/list" class="btn btn-secondary"><i class="fas fa-book-open"></i> 查看资料库</a></header>
+    <section class="collection-launch">
+        <div class="collection-prompt"><i class="fas fa-search"></i><input type="search" id="keyword" aria-label="采集主题" placeholder="今天想关注什么？例如：人工智能、行业动态…" autocomplete="off"><button class="btn-neo" id="startBtn" onclick="startSpy()"><i class="fas fa-bolt"></i> 开始采集</button></div>
+        <div class="topic-suggestions"><span>试试这些主题</span><button type="button" data-topic="人工智能">人工智能</button><button type="button" data-topic="行业动态">行业动态</button><button type="button" data-topic="科技创新">科技创新</button></div>
+        <div class="collection-source-heading"><h2>选择信息来源</h2><a href="/spy_source/list">管理来源 <i class="fas fa-arrow-right"></i></a></div>
+        <div class="source-chips" id="sourceContainer" aria-label="信息来源"><p class="messenger-status">正在加载来源…</p></div>
+        <div class="collection-options"><div class="collection-run-status"><span id="deckStatus" role="status">准备就绪</span><button type="button" class="btn btn-secondary btn-sm" id="stopCollection" hidden>停止采集</button></div><details class="collection-advanced"><summary><i class="fas fa-sliders-h"></i> 采集选项</summary><div class="params-row"><div class="param-item"><label for="maxPages">最多采集页数</label><input type="number" id="maxPages" value="1" min="1" max="10"></div><div class="param-item"><label for="pageStep">每页步进</label><input type="number" id="pageStep" value="10" min="1" max="100"></div></div></details></div>
+    </section>
+    <details class="collection-progress" id="collectionProgress" hidden><summary><span class="dot"></span> 采集进度</summary><div class="log-panel" id="logPanel" role="log" aria-label="采集进度"></div></details>
+    <section class="collection-empty" id="collectionEmpty"><div class="collection-empty-art"><i class="fas fa-satellite-dish"></i></div><h2>从一个好问题，开始一次发现</h2><p>采集结果将在这里出现。你可以阅读摘要、打开原文，<br>再选择需要保存的内容。</p><div class="collection-flow"><span>01 搜索主题</span><i class="fas fa-angle-right"></i><span>02 发现内容</span><i class="fas fa-angle-right"></i><span>03 存入资料库</span></div></section>
+    <section class="deck result-panel" id="resultPanel"><div class="deck-head"><div class="deck-head-left"><span class="dot"></span><h2>发现的内容</h2></div><span id="resultStats">候选数据：0 条 · 已选择：0 条</span></div><div class="deck-body"><div class="result-toolbar"><div class="result-actions"><button class="btn-ghost" id="toggleAllBtn" onclick="toggleSelectAll()">全选</button><button class="btn-primary2" id="commitBtn" onclick="commitSelected()" disabled>保存到资料库</button></div></div><div class="result-grid" id="resultGrid"></div></div></section>
+</div>
+{% end %}
+{% block script %}
+<script>
+        var $ = layui.$;
+        var layer = layui.layer;
+        var selectedSourceId = null;
+        var activeCollection = null;
+        var xsrf = '{{ handler.xsrf_token }}';
+        var collectedMap = {};
+        var selectedMap = {};
+        var committedMap = {};
+
+        $(function(){
+            $.get('/api/spy_source', {action: 'active_list'}, function(res){
+                if(res.code === 0 && res.data.length > 0) {
+                    var html = '';
+                    $.each(res.data, function(i, item){
+                        var requestedSource=new URLSearchParams(location.search).get('source_id');
+                        var validRequest=res.data.some(function(source){return String(source.id)===requestedSource;});
+                        var isSelected=validRequest?String(item.id)===requestedSource:i===0;
+                        var activeClass = isSelected ? 'active' : '';
+                        if(isSelected) selectedSourceId = item.id;
+                        html += `<button type="button" class="source-chip ${activeClass}" data-id="${item.id}" aria-pressed="${isSelected}" onclick="selectSource(this)"><span class="source-symbol"><i class="fas fa-globe-asia"></i></span><span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(getHostname(item.entry_url)) || '信息检索来源'}</small></span><i class="fas fa-check-circle source-selected"></i></button>`;
+                    });
+                    $('#sourceContainer').html(html);
+                } else {
+                    $('#sourceContainer').html('<span style="color:var(--accent);">暂无可用的采集源，请在后台配置。</span>');
+                }
+            }, 'json').fail(function(){$('#sourceContainer').html('<p class="interaction-error">来源加载失败，请刷新页面重试。</p>');});
+        });
+
+        function setDeckStatus(text) { $('#deckStatus').text(text); }
+        function selectSource(elem) { $('.source-chip').removeClass('active').attr('aria-pressed','false'); $(elem).addClass('active').attr('aria-pressed','true'); selectedSourceId = $(elem).data('id'); }
+        function appendLog(msg, type) {
+            var colorClass = type || 'info';
+            var time = new Date().toLocaleTimeString();
+            $('#collectionProgress').prop('hidden',false);
+            $('#logPanel').show().append(`<div class="log-item ${colorClass}">[${time}] ${escapeHtml(msg)}</div>`);
+            var lp = document.getElementById('logPanel');
+            lp.scrollTop = lp.scrollHeight;
+        }
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        // 前端 URL 规范化：百度/头条相对路径 → 绝对 URL
+        function normalizeUrl(url) {
+            if (!url) return '#';
+            if (url.indexOf('/link?') === 0 || url.indexOf('/sf?') === 0)
+                return 'https://www.baidu.com' + url;
+            if (url.indexOf('toutiao.com/search/jump') > -1) {
+                var m = url.match(/[?&]url=([^&]+)/);
+                if (m) return normalizeUrl(decodeURIComponent(m[1]));
+            }
+            try{var parsed=new URL(url);return /^https?:$/.test(parsed.protocol)?parsed.href:'#';}catch(e){return '#';}
+        }
+        function getItemKey(item) { return String(item.source_id) + '||' + String(item.url || ''); }
+        function getHostname(rawUrl) {
+            try { return (new URL(rawUrl)).hostname || ''; } catch(e) { return ''; }
+        }
+        function getDisplayUrl(rawUrl) {
+            try { var u=new URL(rawUrl); var p=(u.pathname||'')+(u.search||''); if(p.length>40)p=p.slice(0,40)+'…'; return u.hostname+p; } catch(e) { return rawUrl||''; }
+        }
+        function copyToClipboard(text) {
+            var t=String(text||''); if(!t)return Promise.reject();
+            if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(t);
+            return new Promise(function(resolve,reject){
+                try{ var ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.focus(); ta.select(); var ok=document.execCommand('copy'); document.body.removeChild(ta); ok?resolve():reject(); } catch(e){ reject(); }
+            });
+        }
+        function updateStats() {
+            var total=Object.keys(collectedMap).length;
+            var selected=Object.keys(selectedMap).length;
+            $('#resultStats').text(`候选数据：${total} 条 · 已选择：${selected} 条`);
+            $('#commitBtn').prop('disabled', selected===0);
+        }
+        function resetResults() {
+            collectedMap={}; selectedMap={}; committedMap={};
+            $('#resultGrid').empty(); $('#resultPanel').hide();$('#collectionEmpty').show();
+            $('#toggleAllBtn').text('全选'); updateStats();
+        }
+        function renderItem(item) {
+            var key=getItemKey(item);
+            var title=escapeHtml(item.title||'');
+            var rawUrl=item.url||'';
+            var url=escapeHtml(rawUrl);
+            var safeUrl=escapeHtml(normalizeUrl(rawUrl));
+            var summary=escapeHtml(item.summary||'');
+            var keyword=escapeHtml(item.keyword||'');
+            var committedClass=committedMap[key]?'committed':'';
+            var checked=selectedMap[key]?'checked':'';
+            var hostname=escapeHtml(getHostname(rawUrl));
+            var displayUrl=escapeHtml(getDisplayUrl(rawUrl));
+
+            var html=`
+                <div class="result-card ${committedClass}" id="card_${encodeURIComponent(key)}">
+                    <div class="form-check result-check">
+                        <input class="form-check-input item-check" type="checkbox" data-key="${escapeHtml(key)}" ${checked}>
+                    </div>
+                    <div class="result-cover">
+                        <div class="cover-badge" title="来源站点"><i class="fas fa-newspaper"></i> ${hostname||'未知站点'}</div>
+                        <div class="cover-chip" title="来源ID">SID ${escapeHtml(item.source_id)}</div>
+                    </div>
+                    <div class="result-body">
+                        <div class="result-title"><a href="${safeUrl}" target="_blank" rel="noreferrer">${title}</a></div>
+                        <div class="result-link">
+                            <i class="fas fa-link"></i>
+                            <a href="${safeUrl}" target="_blank" rel="noreferrer">${displayUrl||safeUrl}</a>
+                        </div>
+                        <div class="result-summary">${summary||'（无摘要）'}</div>
+                        <div class="result-meta">
+                            <div class="meta-left" title="关键词">${keyword?('# '+keyword):''}</div>
+                            <div class="meta-actions">
+                                <button type="button" class="mini-btn btn-open" data-url="${safeUrl}"><i class="fas fa-external-link-alt"></i> 打开</button>
+                                <button type="button" class="mini-btn btn-copy" data-url="${safeUrl}"><i class="fas fa-copy"></i> 复制</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#resultGrid').append(html);
+        }
+        $('#resultGrid').on('click','.btn-open',function(){ var url=$(this).data('url')||''; if(!url)return; window.open(url,'_blank','noreferrer'); });
+        $('#resultGrid').on('click','.btn-copy',function(){
+            var url=$(this).data('url')||'';
+            copyToClipboard(url).then(function(){ layer.msg('链接已复制',{icon:1,time:900}); }).catch(function(){ layer.msg('复制失败',{icon:2,time:1200}); });
+        });
+        $('#resultGrid').on('change','.item-check',function(){
+            var key=$(this).data('key');
+            if(this.checked){ selectedMap[key]=true; } else { delete selectedMap[key]; }
+            updateStats();
+        });
+        function toggleSelectAll(){
+            var keys=Object.keys(collectedMap);
+            if(keys.length===0)return;
+            var allSelected=keys.length>0&&keys.every(function(k){ return !!selectedMap[k]; });
+            if(allSelected){ selectedMap={}; $('.item-check').prop('checked',false); $('#toggleAllBtn').text('全选'); }
+            else { keys.forEach(function(k){ selectedMap[k]=true; }); $('.item-check').prop('checked',true); $('#toggleAllBtn').text('取消全选'); }
+            updateStats();
+        }
+        function commitSelected(){
+            var keys=Object.keys(selectedMap);
+            if(keys.length===0)return layer.msg('请先勾选要入库的数据',{icon:0,anim:6});
+            var items=keys.map(function(k){ return collectedMap[k]; }).filter(Boolean);
+            if(items.length===0)return layer.msg('勾选数据为空',{icon:0,anim:6});
+            var loading=layer.load(2,{shade:[0.35,'#000']});
+            $.post('/api/spy/commit',{items:JSON.stringify(items),_xsrf:xsrf},function(res){
+                layer.close(loading);
+                if(res.code===0){
+                    var d=res.data||{};
+                    layer.msg(`入库完成：新增 ${d.inserted||0} 条，更新 ${d.updated||0} 条`,{icon:1});
+                    keys.forEach(function(k){ committedMap[k]=true; var card=document.getElementById('card_'+encodeURIComponent(k));if(card)card.classList.add('committed'); });
+                }else{ layer.msg(res.msg||'入库失败',{icon:2}); }
+            },'json').fail(function(){ layer.close(loading); layer.msg('入库请求失败',{icon:2}); });
+        }
+        function startSpy(){
+            var keyword=$('#keyword').val().trim();
+            if(!keyword)return layer.msg('请输入要采集的关键词',{icon:0,anim:6});
+            if(!selectedSourceId)return layer.msg('请选择采集源',{icon:0,anim:6});
+            var maxPages=Math.max(1,Math.min(10,parseInt($('#maxPages').val())||1));
+            var pageStep=Math.max(1,Math.min(100,parseInt($('#pageStep').val())||10));
+            setDeckStatus('正在采集…');
+            $('#startBtn').prop('disabled',true).html('<i class="fas fa-spinner fa-spin"></i> 采集中...');
+            $('#logPanel').empty();
+            resetResults();
+            appendLog('🚀 启动智能瞭望采集引擎...','info');
+            appendLog(`🎯 目标: [${keyword}] | 最大页数: ${maxPages}`,'info');
+            var eventSourceUrl=`/api/spy/run?source_id=${selectedSourceId}&keyword=${encodeURIComponent(keyword)}&max_pages=${maxPages}&page_step=${pageStep}`;
+            var source=new EventSource(eventSourceUrl);
+            activeCollection=source;document.getElementById('stopCollection').hidden=false;
+            source.onmessage=function(e){
+                var data=JSON.parse(e.data);
+                if(data.type==='log'){ appendLog(data.msg,data.level); }
+                else if(data.type==='item'){
+                    var item=data.data||{};
+                    var key=getItemKey(item);
+                    if(!key||collectedMap[key])return;
+                    collectedMap[key]=item;
+                    $('#collectionEmpty').hide();$('#resultPanel').show();
+                    renderItem(item);
+                    updateStats();
+                } else if(data.type==='done'){
+                    appendLog(`✅ 采集任务完成！共获得 ${data.count} 条候选数据`,'success');
+                    source.close();activeCollection=null;document.getElementById('stopCollection').hidden=true;
+                    $('#startBtn').prop('disabled',false).html('<i class="fas fa-bolt"></i> 启动采集');
+                    setDeckStatus('采集完成 · '+new Date().toLocaleTimeString());
+                } else if(data.type==='error'){
+                    appendLog(`❌ 发生错误: ${data.msg}`,'error');
+                    source.close();activeCollection=null;document.getElementById('stopCollection').hidden=true;
+                    $('#startBtn').prop('disabled',false).html('<i class="fas fa-bolt"></i> 重新采集');
+                    setDeckStatus('采集失败');
+                }
+            };
+            source.onerror=function(e){
+                appendLog('⚠️ 连接中断或采集结束','error');
+                source.close();activeCollection=null;document.getElementById('stopCollection').hidden=true;
+                $('#startBtn').prop('disabled',false).html('<i class="fas fa-bolt"></i> 启动采集');
+                setDeckStatus('连接已结束');
+            };
+        }
+
+        document.getElementById('stopCollection').onclick=function(){if(activeCollection){activeCollection.close();activeCollection=null;}this.hidden=true;$('#startBtn').prop('disabled',false).html('<i class="fas fa-bolt"></i> 重新采集');setDeckStatus('已停止，已发现的内容仍可保存');appendLog('采集已手动停止','info');};
+        window.addEventListener('pagehide',function(){if(activeCollection)activeCollection.close();});
+        document.querySelectorAll('[data-topic]').forEach(function(b){b.onclick=function(){document.getElementById('keyword').value=b.dataset.topic;document.getElementById('keyword').focus();};});
+        document.getElementById('keyword').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.isComposing&&!document.getElementById('startBtn').disabled)startSpy();});
+</script>
+{% end %}

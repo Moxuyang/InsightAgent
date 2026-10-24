@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block body %}
+<style>
+    .register-page {
+        display: flex; align-items: center; justify-content: center;
+        min-height: 100vh;
+        background: var(--bg);
+        position: relative; overflow: hidden;
+    }
+    .register-page::before {
+        content: '';
+        position: absolute;
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+        top: -150px; right: -100px;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .register-card {
+        width: 420px;
+        background: var(--surface);
+        border-radius: var(--radius-2xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border-light);
+        padding: 44px 40px;
+        position: relative; z-index: 1;
+        text-align: center;
+    }
+    .register-icon {
+        width: 48px; height: 48px;
+        border-radius: var(--radius);
+        background: var(--accent);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 20px;
+        margin: 0 auto 14px;
+    }
+    .register-heading {
+        font-size: var(--text-xl);
+        font-weight: var(--weight-bold);
+        color: var(--ink-heavy);
+        margin-bottom: 4px;
+    }
+    .register-subtitle {
+        font-size: var(--text-sm);
+        color: var(--ink-muted);
+        margin-bottom: 28px;
+    }
+
+    .input-group { position: relative; margin-bottom: 16px; text-align: left; }
+    .input-group input {
+        width: 100%; height: 46px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        padding: 0 var(--space-3);
+        font-size: var(--text-sm);
+        font-family: var(--font-sans);
+        color: var(--ink);
+        background: var(--bg);
+        outline: none;
+        box-sizing: border-box;
+        transition: all var(--duration-150) var(--ease-out);
+    }
+    .input-group input:focus {
+        border-color: var(--accent);
+        background: var(--surface);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .input-group input::placeholder { color: var(--ink-placeholder); }
+
+    .register-submit {
+        width: 100%; height: 48px;
+        background: var(--accent);
+        color: #fff; border: none;
+        border-radius: var(--radius);
+        font-size: var(--text-base);
+        font-weight: var(--weight-semibold);
+        font-family: var(--font-sans);
+        cursor: pointer;
+        margin-top: 8px;
+        letter-spacing: 3px;
+        transition: all var(--duration-200) var(--ease-out);
+    }
+    .register-submit:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .register-submit:active { background: var(--accent-press); transform: scale(0.985); }
+
+    .register-link {
+        margin-top: 20px;
+        font-size: var(--text-xs);
+    }
+    .register-link a {
+        color: var(--ink-faint); text-decoration: none;
+        transition: color var(--duration-150);
+    }
+    .register-link a:hover { color: var(--accent-text); }
+
+    .register-error {
+        background: var(--error-bg);
+        color: var(--error);
+        padding: 10px 14px; border-radius: var(--radius-sm);
+        margin-bottom: 16px; font-size: var(--text-sm);
+        border: 1px solid var(--error);
+        display: flex; align-items: center; gap: 6px;
+        text-align: left;
+    }
+</style>
+
+<div class="register-page">
+    <div class="register-card">
+        <div class="register-icon"><i class="fas fa-user-plus"></i></div>
+        <h2 class="register-heading">创建账号</h2>
+        <p class="register-subtitle">加入 InsightAgent 智能平台</p>
+
+        {% if error %}
+        <div class="register-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+        {% end %}
+
+        <form method="post" action="/register">
+            {% module xsrf_form_html() %}
+            <div class="input-group">
+                <input type="text" name="username" placeholder="请输入用户名" required autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="请输入密码（至少6位）" required autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" name="password_confirm" placeholder="再次输入密码" required autocomplete="off">
+            </div>
+            <button type="submit" class="register-submit">注 册</button>
+        </form>
+
+        <div class="register-link">
+            <a href="/auth/login">已有账号？立即登录 →</a>
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['layer'], function(){
+    var errorMsg = "{% if error %}{{ error }}{% end %}";
+    if (errorMsg) { layui.layer.msg(errorMsg, {icon: 2}); }
+});
+</script>
+{% end %}

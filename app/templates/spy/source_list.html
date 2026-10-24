@@ -1,0 +1,136 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-rss"></i> 数据源</h1>
+            <p class="page-subtitle">连接和管理信息来源，为采集工作区提供内容。</p>
+        </div>
+    </div>
+    <div class="connector-intro"><i class="fas fa-rss"></i><div><h2>连接你的信息来源</h2><p>选择可用来源开始采集；只有需要接入新来源时，才需要设置采集入口。</p></div><a class="btn btn-secondary" href="/spy">进入采集工作区 →</a></div>
+    <div class="employee-directory-toolbar"><form id="sourceSearchForm" class="catalog-search"><input id="sourceSearch" class="form-input" aria-label="搜索数据源" placeholder="搜索来源名称或域名"><button class="btn btn-secondary btn-sm">搜索</button></form><div id="sourceFilters" class="catalog-filters"><button class="is-active" data-status="">全部来源</button><button data-status="1">已启用</button><button data-status="0">已停用</button></div><button class="btn btn-primary" id="addSource">＋ 连接数据源</button></div>
+    <div id="sourceGrid" class="employee-grid" aria-live="polite"></div><div class="directory-pagination"><button id="sourcePrev" class="btn btn-secondary btn-sm">上一页</button><span id="sourcePage"></span><button id="sourceNext" class="btn btn-secondary btn-sm">下一页</button></div>
+</div>
+
+<script type="text/html" id="sourceFormTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container" lay-filter="sourceForm">
+            <input type="hidden" name="id">
+            <input type="hidden" name="action" id="formAction">
+            <input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required lay-verify="required" placeholder="如：百度新闻" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">入口URL</label>
+                <div class="layui-input-block">
+                    <input type="text" name="entry_url" required lay-verify="required" placeholder="支持 {关键字} / {分页步进} 占位符" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">启用</label>
+                <div class="layui-input-block">
+                    <input type="checkbox" name="is_active" lay-skin="switch" lay-text="ON|OFF" value="1">
+                </div>
+            </div>
+
+            <details class="connector-advanced"><summary>高级连接设置</summary>
+            <div class="layui-form-item">
+                <label class="layui-form-label">Headers</label>
+                <div class="layui-input-block">
+                    <textarea name="request_headers" placeholder="每行一个 Header，格式：Key: Value" class="layui-textarea" style="min-height: 140px;"></textarea>
+                </div>
+            </div>
+
+            </details>
+            <button class="layui-hide" lay-submit lay-filter="saveSource" id="realSaveSourceBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveSourceBtn').click()">确定</button>
+        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['form', 'layer', 'jquery'], function(){
+    var form = layui.form;
+    var layer = layui.layer;
+    var $ = layui.jquery;
+
+    var xsrf = '{{ handler.xsrf_token }}';
+
+    var sourceRows=[],sourcePage=1,sourceTotal=0,sourceStatus='',sourceRequest=0;
+    function escapeText(value){return $('<span>').text(value==null?'':String(value)).html();}
+    function sourceHost(url){try{return new URL(url).hostname;}catch(e){return '自定义采集来源';}}
+    function renderSources(){
+        var grid=$('#sourceGrid').empty();sourceRows.forEach(function(item){
+            var card=$('<article class="employee-profile connector-card"></article>');
+            card.html('<div class="employee-profile-top"><span class="connector-symbol"><i class="fas fa-globe-asia"></i></span><h2>'+escapeText(item.name)+'</h2><span class="profile-status '+(item.is_active==1?'':'paused')+'">'+(item.is_active==1?'已启用':'已停用')+'</span></div><p>'+escapeText(sourceHost(item.entry_url))+'</p><div class="connector-description">'+(item.is_active==1?'可用于主题搜索与信息采集':'启用后，可在采集工作区选择此来源')+'</div><footer>'+(item.is_active==1?'<a class="btn btn-primary btn-sm" href="/spy?source_id='+encodeURIComponent(item.id)+'">去采集 →</a>':'<button class="btn btn-secondary btn-sm" data-enable>启用来源</button>')+'<button class="btn btn-secondary btn-sm" data-edit>设置</button><button class="btn btn-danger btn-sm" data-delete>删除</button></footer>');
+            card.find('[data-edit]').on('click',function(){openForm('edit',item);});
+            card.find('[data-enable]').on('click',function(){var button=$(this).prop('disabled',true);$.post('/api/spy_source',{action:'edit',id:item.id,name:item.name,entry_url:item.entry_url,request_headers:item.request_headers||'',is_active:1,_xsrf:xsrf},function(r){if(r.code===0)loadSources();else layer.msg(r.msg);},'json').fail(function(){layer.msg('启用失败，请重试');}).always(function(){button.prop('disabled',false);});});
+            card.find('[data-delete]').on('click',function(){layer.confirm('确定删除来源「'+escapeText(item.name)+'」？',function(index){$.post('/api/spy_source',{action:'delete',id:item.id,_xsrf:xsrf},function(r){layer.close(index);if(r.code===0)loadSources();else layer.msg(r.msg);},'json').fail(function(){layer.msg('删除失败，请重试');});});});grid.append(card);
+        });
+        if(!sourceRows.length)grid.append('<p class="messenger-status">没有找到匹配的来源，可以连接一个新的数据源。</p>');
+        $('#sourcePage').text(sourcePage+' / '+Math.max(1,Math.ceil(sourceTotal/24)));$('#sourcePrev').prop('disabled',sourcePage<=1);$('#sourceNext').prop('disabled',sourcePage*24>=sourceTotal);
+    }
+    function loadSources(){var request=++sourceRequest;$.get('/api/spy_source',{page:sourcePage,limit:24,keyword:$('#sourceSearch').val().trim(),is_active:sourceStatus},function(r){if(request!==sourceRequest)return;if(r.code!==0)return layer.msg(r.msg);sourceRows=r.data;sourceTotal=r.count;if(!sourceRows.length&&sourcePage>1){sourcePage--;return loadSources();}renderSources();},'json').fail(function(){$('#sourceGrid').html('<p class="interaction-error">来源加载失败，请刷新重试。</p>');});}
+    $('#sourceSearchForm').on('submit',function(e){e.preventDefault();sourcePage=1;loadSources();});$('#sourceFilters button').on('click',function(){sourceStatus=this.dataset.status;$('#sourceFilters button').removeClass('is-active');$(this).addClass('is-active');sourcePage=1;loadSources();});$('#sourcePrev').on('click',function(){sourcePage--;loadSources();});$('#sourceNext').on('click',function(){sourcePage++;loadSources();});$('#addSource').on('click',function(){openForm('add',{});});loadSources();
+
+    function openForm(action, data){
+        layer.open({
+            type: 1,
+            title: action === 'add' ? '连接数据源' : '数据源设置',
+            area: ['650px', '520px'],
+            content: $('#sourceFormTpl').html(),
+            success: function(layero, index){
+                $('#formAction').val(action);
+                if(action === 'edit'){
+                    form.val('sourceForm', {
+                        "id": data.id,
+                        "name": data.name,
+                        "entry_url": data.entry_url,
+                        "request_headers": data.request_headers || ""
+                    });
+                    if(data.is_active === 1){
+                        $('input[name="is_active"]').prop('checked', true);
+                    } else {
+                        $('input[name="is_active"]').prop('checked', false);
+                    }
+                } else {
+                    $('input[name="is_active"]').prop('checked', true);
+                }
+                form.render();
+
+                form.on('submit(saveSource)', function(formData){
+                    var reqData = formData.field;
+                    reqData.action = action;
+                    reqData.is_active = reqData.is_active ? 1 : 0;
+                    reqData._xsrf = xsrf;
+
+                    $.post('/api/spy_source', reqData, function(res){
+                        if(res.code === 0){
+                            layer.msg(res.msg, {icon: 1, time: 1000}, function(){
+                                layer.close(index);
+                                loadSources();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    }, 'json');
+                    return false;
+                });
+            }
+        });
+    }
+});
+</script>
+{% end %}

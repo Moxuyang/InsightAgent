@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+<title>{{ title }} - InsightAgent</title>
+<style>
+    :root {
+      --ink: oklch(0.13 0.005 25); --ink-heavy: oklch(0.07 0.003 25);
+      --ink-muted: oklch(0.42 0.005 25); --ink-faint: oklch(0.58 0.004 25);
+      --bg: oklch(0.975 0.002 25); --surface: #ffffff;
+      --border-light: oklch(0.92 0.003 25);
+      --font-sans: 'Noto Sans SC','Microsoft YaHei',sans-serif;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: var(--font-sans);
+        color: var(--ink); line-height: 1.8;
+        padding: 40px 60px; max-width: 900px; margin: 0 auto;
+        background: var(--surface);
+    }
+    .pdf-header {
+        text-align: center; border-bottom: 2px solid var(--accent);
+        padding-bottom: var(--space-5); margin-bottom: var(--space-8);
+    }
+    .pdf-header h1 { font-size: 24px; color: var(--accent-text); font-weight: 700; margin-bottom: 6px; }
+    .pdf-header .meta { font-size: 13px; color: var(--ink-faint); }
+    .pdf-header .meta span { margin: 0 10px; }
+    .msg-block {
+        margin-bottom: var(--space-5); padding: var(--space-4) var(--space-5);
+        border-radius: 8px; border: 1px solid var(--border-light);
+        page-break-inside: avoid;
+    }
+    .msg-block.user { background: var(--accent-subtle); border-left: 3px solid var(--accent); }
+    .msg-block.assistant { background: var(--bg); border-left: 3px solid var(--ink-faint); }
+    .msg-block .role-label {
+        font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px;
+    }
+    .msg-block.user .role-label { color: var(--accent-text); }
+    .msg-block.assistant .role-label { color: var(--ink-muted); }
+    .msg-block .content { font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+    .msg-block .time { font-size: 11px; color: var(--ink-faint); margin-top: 10px; text-align: right; }
+    .query-block {
+        margin-bottom: var(--space-6); padding: var(--space-4) var(--space-5);
+        border: 1px solid var(--border-light); border-radius: 8px;
+        page-break-inside: avoid; background: var(--accent-subtle);
+    }
+    .query-block .q-label { font-size: 13px; font-weight: 700; color: var(--accent-text); margin-bottom: 6px; }
+    .query-block .q-question { font-size: 14px; font-weight: 600; color: var(--ink-heavy); margin-bottom: 8px; }
+    .query-block .q-answer { font-size: 13px; color: var(--ink); white-space: pre-wrap; }
+    .query-block .q-meta { font-size: 11px; color: var(--ink-faint); margin-top: 8px; }
+    .pdf-footer {
+        margin-top: 40px; text-align: center; font-size: 11px; color: var(--ink-faint);
+        border-top: 1px solid var(--border-light); padding-top: 16px;
+    }
+    @media print {
+        body { padding: 20px 30px; }
+        .msg-block, .query-block { break-inside: avoid; }
+    }
+</style>
+</head>
+<body>
+<div class="pdf-header">
+    <h1>{{ title }}</h1>
+    <div class="meta">
+        <span>用户: {{ username }}</span>
+        <span>导出时间: {{ handler.request.headers.get('Date', '') }}</span>
+    </div>
+</div>
+
+{% if export_type == 'session' %}
+    {% for m in messages %}
+    <div class="msg-block {{ m['role'] }}">
+        <div class="role-label">{{ '用户' if m['role'] == 'user' else 'AI 助手' }}</div>
+        <div class="content">{{ m['content'] }}</div>
+        <div class="time">{{ m.get('create_at', '') }} | Token 消耗: {{ m.get('tokens_used', 0) }}</div>
+    </div>
+    {% end %}
+    {% if not messages %}
+    <p style="text-align:center;color:var(--ink-muted);padding:40px;">暂无消息内容</p>
+    {% end %}
+{% elif export_type == 'queries' %}
+    {% for q in queries %}
+    <div class="query-block">
+        <div class="q-label">问题 #{{ q['id'] }}</div>
+        <div class="q-question">Q: {{ q.get('query_text', '') }}</div>
+        <div class="q-answer">A: {{ q.get('response_text', '') }}</div>
+        <div class="q-meta">用户: {{ q.get('username', '未知') }} | 时间: {{ q.get('create_at', '') }} | Token: {{ q.get('tokens_used', 0) }}</div>
+    </div>
+    {% end %}
+    {% if not queries %}
+    <p style="text-align:center;color:var(--ink-muted);padding:40px;">暂无对话记录</p>
+    {% end %}
+{% end %}
+
+<div class="pdf-footer">
+    InsightAgent · 智能瞭望与智能问数系统 · 对话记录导出
+</div>
+<script>window.onload = function(){ window.print(); }</script>
+</body>
+</html>

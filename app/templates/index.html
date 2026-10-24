@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block body %}
+<style>
+    html, body {
+        margin: 0; padding: 0;
+        width: 100vw; height: 100vh;
+        overflow: hidden;
+        background: var(--bg);
+    }
+    .layui-layout-admin {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+    }
+    .layui-body {
+        position: fixed !important;
+        top: 52px !important;
+        left: 220px !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        overflow: hidden;
+        z-index: 998;
+        background: var(--bg);
+    }
+    .layui-body iframe {
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+    }
+    .layui-side-scroll {
+        width: 220px !important;
+        height: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: auto;
+    }
+</style>
+
+<div class="layui-layout layui-layout-admin app-shell" id="appShell">
+    <!-- Top Header -->
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs">
+            <span class="brand-dot"></span>
+            AI 智能瞭望
+        </div>
+        <div class="workspace-topbar">
+            <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-label="收起导航" aria-expanded="true"><i class="fas fa-bars"></i></button>
+            <span class="workspace-breadcrumb">工作空间 <span>/</span> <strong id="currentPageName">工作台</strong></span>
+        </div>
+        <a href="/user_dashboard" target="content_iframe" class="mobile-ask-link" id="mobileAsk" hidden><i class="fas fa-magic"></i> AI 问数</a>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+                <a href="javascript:;">
+                    <i class="fas fa-user-circle" style="margin-right:6px;"></i>
+                    {{ username }}
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" onclick="document.getElementById('logout-form').submit();"><i class="fas fa-sign-out-alt"></i> 退出登录</a></dd>
+                </dl>
+                <form id="logout-form" action="/auth/logout" method="post" style="display:none;">
+                    {% module xsrf_form_html() %}
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="layui-side">
+        <div class="layui-side-scroll">
+            <a href="/user_dashboard" target="content_iframe" class="sidebar-ask" id="sidebarAsk" hidden><span class="sidebar-ask-icon"><i class="fas fa-magic"></i></span><span><strong>AI 问数</strong><small>提个问题，开始分析</small></span><i class="fas fa-arrow-right"></i></a>
+            <div class="sidebar-home-row"><a href="/dashboard" target="content_iframe" class="workspace-home"><i class="fas fa-th-large"></i> 工作台</a><button type="button" id="customizeNavigation" class="sidebar-organize" title="整理导航" aria-label="整理导航"><i class="fas fa-sliders-h"></i></button></div>
+            <ul class="layui-nav layui-nav-tree" lay-filter="nav-side">
+                {% for menu in menus %}
+                {% if menu.get('children') %}
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a href="javascript:;">
+                        {% if menu.get('icon') %}
+                        <i class="layui-icon {{ menu['icon'] }}"></i>
+                        {% end %}
+                        {{ menu['name'] }}
+                    </a>
+                    <dl class="layui-nav-child">
+                        {% for child in menu['children'] %}
+                        <dd>
+                            <a href="{{ child['url'] or 'javascript:;' }}" {% if child.get('url') %}target="content_iframe"{% end %}>
+                                {{ child['name'] }}
+                            </a>
+                        </dd>
+                        {% end %}
+                    </dl>
+                </li>
+                {% else %}
+                <li class="layui-nav-item">
+                    <a href="{{ menu.get('url') or 'javascript:;' }}" {% if menu.get('url') %}target="content_iframe"{% end %}>
+                        {% if menu.get('icon') %}
+                        <i class="layui-icon {{ menu['icon'] }}"></i>
+                        {% end %}
+                        {{ menu['name'] }}
+                    </a>
+                </li>
+                {% end %}
+                {% end %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="layui-body">
+        <iframe name="content_iframe" id="content_iframe" title="工作区" src="/dashboard"></iframe>
+    </div>
+</div>
+<dialog id="navigationDialog" class="navigation-dialog" aria-labelledby="navigationDialogTitle"><header><div><h2 id="navigationDialogTitle">整理我的导航</h2><p>调整入口的分组和顺序，设置会保存在当前浏览器。</p></div><button type="button" class="icon-btn" id="closeNavigationDialog" aria-label="关闭">×</button></header><div id="navigationEditor" class="navigation-editor"></div><p id="navigationSaveError" class="interaction-error" role="alert"></p><footer><button type="button" class="btn btn-ghost" id="resetNavigation">恢复默认排列</button><button type="button" class="btn btn-primary" id="saveNavigation">保存排列</button></footer></dialog>
+
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/navigation.js') }}"></script>
+{% end %}

@@ -1,0 +1,93 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page management-page" data-management="permission">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-shield-alt"></i> 访问权限</h1>
+            <p class="page-subtitle">按角色查看已授权模块，统一配置访问范围</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="permTable" lay-filter="permTable"></table>
+        </div>
+    </div>
+</div>
+
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-bg-blue" lay-event="assign">配置权限</a>
+</script>
+
+<script type="text/html" id="permFormTpl">
+    <div class="admin-layer-content" style="padding:15px;">
+        <div id="permMenuTree"></div>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" id="savePermBtn">保存权限</button>
+        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/management-cards.js') }}"></script>
+<script>
+layui.use(['laytpl','table', 'layer', 'jquery', 'tree'], function(){
+    var table = layui.table, layer = layui.layer, $ = layui.jquery, tree = layui.tree;
+    var xsrf = '{{ handler.xsrf_token }}';
+    var currentRoleId = 0;
+
+    ManagementCards.render({
+        elem: '#permTable',
+        url: '/api/permission?action=list',
+        cols: [[
+            {field: 'role_id', title: '角色ID', width: 80},
+            {field: 'role_name', title: '角色名称', minWidth: 150},
+            {field: 'role_code', title: '角色标识', minWidth: 150},
+            {field: 'menu_names', title: '拥有权限', minWidth: 250},
+            {fixed: 'right', title:'操作', toolbar: '#barDemo', width: 130}
+        ]]
+    });
+
+    ManagementCards.on('tool(permTable)', function(obj){
+        if(obj.event === 'assign'){
+            currentRoleId = obj.data.role_id;
+            $.get('/api/menu?action=tree', function(menuRes){
+                $.post('/api/role', {action:'get_permissions', id: currentRoleId, _xsrf:xsrf}, function(permRes){
+                    var roleMenus = permRes.data || [];
+                    function formatTree(nodes){
+                        var arr = [];
+                        $.each(nodes, function(i, item){
+                            var node = {id:item.id, title:item.name, spread:true};
+                            if(item.children && item.children.length>0){
+                                node.children = formatTree(item.children);
+                            } else if($.inArray(item.id, roleMenus)!==-1){
+                                node.checked = true;
+                            }
+                            arr.push(node);
+                        });
+                        return arr;
+                    }
+                    layer.open({
+                        type:1, title:'权限配置 - '+obj.data.role_name, area:['550px','520px'],
+                        content: $('#permFormTpl').html(),
+                        success: function(layero, index){
+                            tree.render({elem:'#permMenuTree', data:formatTree(menuRes.data), showCheckbox:true, id:'permTree'});
+                            $('#savePermBtn').on('click', function(){
+                                var checked = tree.getChecked('permTree');
+                                var ids = [];
+                                (function walk(n){$.each(n, function(i,item){ids.push(item.id); if(item.children) walk(item.children);});})(checked);
+                                $.post('/api/role', {action:'assign_permissions', id:currentRoleId, menu_ids:ids.join(','), _xsrf:xsrf}, function(r){
+                                    if(r.code===0){ layer.close(index); layer.msg('保存成功',{icon:1}); ManagementCards.reload('permTable'); }
+                                    else layer.msg(r.msg,{icon:2});
+                                },'json');
+                            });
+                        }
+                    });
+                },'json');
+            });
+        }
+    });
+});
+</script>
+{% end %}

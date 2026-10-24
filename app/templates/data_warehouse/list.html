@@ -1,0 +1,12 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page article-library" id="articleLibrary" data-xsrf="{{ handler.xsrf_token }}">
+    <div class="page-header"><div><h1 class="page-title"><i class="fas fa-book-open"></i> 资料库</h1><p class="page-subtitle">把发现的信息收在一起，随时检索与阅读。</p></div><div class="page-header-right"><a class="btn btn-secondary" href="/deep_collect/list"><i class="fas fa-layer-group"></i> 深度采集</a><a class="btn btn-primary" href="/spy">＋ 发现新内容</a></div></div>
+    <form class="library-search" id="librarySearchForm"><div><i class="fas fa-search"></i><input type="search" id="articleKeyword" aria-label="搜索资料" placeholder="搜索标题、摘要或关键词"></div><select id="articleSource" class="form-select" aria-label="筛选来源"><option value="">全部来源</option></select><button class="btn btn-primary">搜索</button></form>
+    <div class="library-meta"><span>共 <strong id="articleCount">—</strong> 条资料</span><div><label><input type="checkbox" id="selectPageArticles"> 选择本页</label><button class="btn btn-ghost btn-sm" id="exportArticles"><i class="fas fa-download"></i> 导出本页</button></div></div>
+    <div class="library-selection" id="articleSelection" hidden><span id="articleSelectedCount"></span><button class="btn btn-danger btn-sm" id="deleteArticles">删除所选</button><button class="btn btn-ghost btn-sm" id="clearArticleSelection">取消选择</button></div>
+    <div class="article-grid" id="articleGrid" aria-live="polite"><p class="messenger-status">正在整理资料…</p></div><div class="directory-pagination"><button class="btn btn-secondary btn-sm" id="articlePrev">上一页</button><span id="articlePage"></span><button class="btn btn-secondary btn-sm" id="articleNext">下一页</button></div>
+</div>
+<dialog id="articleReader" class="article-reader" aria-labelledby="articleReaderTitle"><header><span id="readerSource" class="badge badge-info"></span><button class="icon-btn" id="closeArticleReader" aria-label="关闭">×</button></header><div class="article-reader-content"><h2 id="articleReaderTitle"></h2><div id="readerMeta"></div><h3>内容摘要</h3><p id="readerSummary"></p><div class="reader-note">这里展示采集时保存的摘要，可打开原文继续阅读。</div></div><footer><button class="btn btn-danger btn-sm" id="deleteArticle">删除资料</button><a class="btn btn-primary" id="readOriginal" target="_blank" rel="noopener noreferrer">打开原文 <i class="fas fa-external-link-alt"></i></a></footer></dialog>
+{% end %}
+{% block script %}<script src="{{ static_url('js/article-library.js') }}"></script>{% end %}

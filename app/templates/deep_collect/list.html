@@ -1,0 +1,53 @@
+{% extends "../base.html" %}
+{% block style %}<link rel="stylesheet" href="{{ static_url('css/deep-collect.css') }}">{% end %}
+{% block body %}
+<main class="dc-workspace" id="deepCollection" data-xsrf="{{ handler.xsrf_token }}">
+    <header class="dc-page-header">
+        <div><div class="dc-eyebrow">内容工作台 / 深度采集</div><h1>让信息，成为可读的内容<span class="dc-title-dot">.</span></h1><p>从已发现的线索中提取正文，整理你的信息资料。</p></div>
+        <a class="dc-button dc-button-secondary" href="/spy">发现新内容 <span aria-hidden="true">↗</span></a>
+    </header>
+    <section class="dc-surface" aria-label="采集工作区">
+        <div class="dc-topline">
+            <div class="dc-tabs" role="tablist" aria-label="采集内容">
+                <button type="button" role="tab" id="dcTabWarehouse" aria-selected="true" aria-controls="dcContent" data-view="warehouse" tabindex="0">待采集资料 <span id="dcCountWarehouse">—</span></button>
+                <button type="button" role="tab" id="dcTabResults" aria-selected="false" aria-controls="dcContent" data-view="results" tabindex="-1">采集结果 <span id="dcCountResults">—</span></button>
+                <button type="button" role="tab" id="dcTabTasks" aria-selected="false" aria-controls="dcContent" data-view="tasks" tabindex="-1">任务管理 <span id="dcCountTasks">—</span></button>
+            </div>
+            <button type="button" class="dc-button dc-button-primary" id="dcAddTask" hidden>＋ 新建任务</button>
+            <span class="dc-top-note" id="dcTopNote">先浏览，再采集</span>
+        </div>
+        <form class="dc-filterbar" id="dcSearchForm" role="search">
+            <div class="dc-search-field"><span aria-hidden="true">⌕</span><input type="search" id="dcKeyword" aria-label="搜索资料" placeholder="搜索标题、摘要或关键词" autocomplete="off"><button type="submit" class="dc-search-submit">搜索</button></div>
+            <select id="dcSource" aria-label="筛选资料来源"><option value="">全部来源</option></select>
+            <button type="button" class="dc-text-button" id="dcRefresh">刷新</button>
+        </form>
+        <div class="dc-list-meta"><label class="dc-check-label"><input type="checkbox" id="dcSelectPage"> 选择本页</label><span id="dcListCount">正在加载资料…</span><span class="dc-order-note">最新记录优先</span></div>
+        <div class="dc-selection" id="dcSelection" hidden><span id="dcSelectedCount"></span><div><button type="button" class="dc-button dc-button-primary" id="dcBatchAction">采集所选</button><button type="button" class="dc-text-button" id="dcClearSelection">取消选择</button></div></div>
+        <div class="dc-progress" id="dcProgress" hidden><div><strong id="dcProgressTitle"></strong><span id="dcProgressText" role="status"></span></div><progress id="dcProgressBar" value="0" max="1"></progress><button type="button" class="dc-text-button" id="dcStop">停止后续采集</button></div>
+        <div class="dc-content" id="dcContent" role="tabpanel" aria-labelledby="dcTabWarehouse" tabindex="0">
+            <div class="dc-list-column"><div class="dc-article-list" id="dcList" aria-busy="true"></div><nav class="dc-pagination" aria-label="内容分页"><span id="dcRange"></span><div><button type="button" class="dc-button dc-button-secondary" id="dcPrev">上一页</button><span id="dcPage"></span><button type="button" class="dc-button dc-button-secondary" id="dcNext">下一页</button></div></nav></div>
+            <aside class="dc-reader" id="dcReader" aria-label="文章预览" hidden>
+                <header><span id="dcReaderKind">文章预览</span><button type="button" class="dc-reader-close" id="dcCloseReader" aria-label="关闭文章预览">×</button></header>
+                <div class="dc-reader-scroll" id="dcReaderScroll"><div class="dc-reader-meta" id="dcReaderMeta"></div><h2 id="dcReaderTitle" tabindex="-1"></h2><div class="dc-reader-status" id="dcReaderStatus"></div><div class="dc-reader-copy" id="dcReaderCopy"></div></div>
+                <footer><a id="dcOriginal" target="_blank" rel="noopener noreferrer" class="dc-button dc-button-secondary">打开原文 ↗</a><button type="button" class="dc-button dc-button-primary" id="dcCrawlArticle">提取完整正文</button></footer>
+            </aside>
+        </div>
+    </section>
+    <div class="dc-toast" id="dcToast" role="status" hidden></div>
+</main>
+<dialog class="dc-task-dialog" id="dcTaskDialog" aria-labelledby="dcTaskTitle">
+    <form id="dcTaskForm">
+        <header><div><span class="dc-eyebrow">采集任务</span><h2 id="dcTaskTitle">新建任务</h2></div><button type="button" class="dc-reader-close" id="dcCloseTask" aria-label="关闭任务表单">×</button></header>
+        <div class="dc-task-fields">
+            <p class="dc-form-intro">为采集来源建立清晰的任务配置。</p>
+            <label>任务名称 <span class="dc-required">*</span><input name="name" required maxlength="120" placeholder="例如：行业资讯整理"></label>
+            <label>目标地址 <span class="dc-required">*</span><input name="target_url" type="url" required placeholder="https://example.com/articles"><small>填写需要采集的网页、API 或 RSS 地址。</small></label>
+            <div class="dc-field-pair"><label>内容类型<select name="collect_type"><option value="webpage">网页正文</option><option value="api">API 数据</option><option value="rss">RSS 订阅</option></select></label><label>任务状态<select name="is_active"><option value="1">启用</option><option value="0">停用</option></select></label></div>
+            <details class="dc-task-advanced"><summary>高级配置</summary><label>调度表达式<input name="cron_expression" placeholder="选填，例如：0 9 * * *"><small>仅保存调度配置，实际执行取决于服务端调度支持。</small></label></details>
+            <p id="dcTaskError" class="dc-inline-error" role="alert" hidden></p>
+        </div>
+        <footer><button type="button" class="dc-button dc-button-secondary" id="dcCancelTask">取消</button><button type="submit" class="dc-button dc-button-primary" id="dcSaveTask">保存任务</button></footer>
+    </form>
+</dialog>
+{% end %}
+{% block script %}<script src="{{ static_url('js/deep-collect.js') }}"></script>{% end %}

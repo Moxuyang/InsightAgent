@@ -1,0 +1,450 @@
+{% extends "../base.html" %}
+{% block style %}
+<link rel="stylesheet" href="{{ static_url('css/keyword-watch.css') }}">
+<style>
+    .senti-grid-5 {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-4);
+    }
+    .senti-grid-5b {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+    .senti-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-4);
+    }
+    .senti-grid-3 {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+    .senti-grid-1-1 {
+        display: grid;
+        grid-template-columns: 3fr 2fr;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+
+    /* Stat card */
+    .senti-stat {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4) var(--space-5);
+        display: flex; flex-direction: column;
+        transition: box-shadow var(--duration-150) var(--ease-out);
+    }
+    .senti-stat:hover { box-shadow: var(--shadow-md); }
+    .senti-stat .ss-label {
+        font-size: var(--text-xs);
+        color: var(--ink-muted);
+        font-weight: var(--weight-medium);
+        margin-bottom: var(--space-1);
+    }
+    .senti-stat .ss-value {
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-bold);
+        font-family: var(--font-mono);
+        letter-spacing: -0.5px;
+    }
+    .senti-stat .ss-sub {
+        font-size: 11px; color: var(--ink-faint); margin-top: var(--space-1);
+    }
+    .senti-stat.sev-critical { border: 1px solid oklch(0.50 0.20 20 / 0.25); background: var(--error-bg); }
+    .senti-stat.sev-critical .ss-value { color: var(--error); }
+    .senti-stat.sev-high { border: 1px solid oklch(0.62 0.14 78 / 0.25); background: var(--warning-bg); }
+    .senti-stat.sev-high .ss-value { color: var(--warning); }
+
+    /* Panel */
+    .senti-panel {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+    .senti-panel .sp-header {
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--border-light);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--ink-heavy);
+        display: flex; align-items: center; gap: var(--space-2);
+    }
+    .senti-panel .sp-header i { color: var(--accent); font-size: 13px; }
+    .senti-panel .sp-body { padding: var(--space-2); position: relative; }
+    .sp-body.ch-sm { height: 280px; }
+    .sp-body.ch-md { height: 340px; }
+    .sp-body.ch-lg { height: 400px; }
+
+    /* Alert list */
+    .alert-list {
+        list-style: none; max-height: 340px; overflow-y: auto;
+    }
+    .alert-list li {
+        display: flex; align-items: flex-start; gap: var(--space-3);
+        padding: var(--space-3) var(--space-3);
+        border-bottom: 1px solid var(--border-light);
+        font-size: var(--text-xs);
+        transition: background var(--duration-100);
+    }
+    .alert-list li:hover { background: var(--bg-subtle); }
+    .alert-list li:last-child { border-bottom: none; }
+    .alert-badge {
+        flex-shrink: 0;
+        padding: 2px 8px; border-radius: var(--radius-xs);
+        font-size: 10px; font-weight: var(--weight-bold);
+        color: #fff; white-space: nowrap;
+    }
+    .alert-badge.critical { background: var(--error); }
+    .alert-badge.high { background: var(--warning); color: var(--ink-heavy); }
+    .alert-badge.medium { background: var(--info); }
+    .alert-badge.low { background: var(--success); }
+    .alert-text {
+        flex: 1; min-width: 0;
+        overflow: hidden; text-overflow: ellipsis;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        line-height: 1.5;
+        color: var(--ink);
+    }
+    .alert-meta {
+        flex-shrink: 0;
+        font-size: 10px; color: var(--ink-faint);
+        white-space: nowrap;
+    }
+
+    .analyze-btn {
+        background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
+        padding: 8px 20px; font-size: 13px; cursor: pointer; font-weight: var(--weight-semibold);
+        transition: all var(--duration-200); display: flex; align-items: center; gap: 6px;
+        white-space: nowrap;
+    }
+    .analyze-btn:hover { opacity: 0.9; }
+    .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .chart-error-state {
+        display: flex; align-items: center; justify-content: center;
+        height: 100%; color: var(--ink-faint); font-size: 12px; padding: 12px;
+    }
+
+    @media (max-width: 1000px) {
+        .senti-grid-5, .senti-grid-5b { grid-template-columns: repeat(2, 1fr); }
+        .senti-grid-2, .senti-grid-3, .senti-grid-1-1 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+        .senti-grid-5, .senti-grid-5b { grid-template-columns: 1fr; }
+    }
+</style>
+{% end %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-shield-alt"></i> 舆情洞察</h1>
+            <p class="page-subtitle">设置关注关键词，从采集新闻中发现与你有关的线索</p>
+        </div>
+    </div>
+    <section class="kw-workspace" id="keywordWatch" data-xsrf="{{ handler.xsrf_token }}" aria-label="关键词新闻监测">
+        <aside class="kw-library">
+            <div class="kw-eyebrow">KEYWORD WATCH</div>
+            <div class="kw-heading"><h2>我的关注词库</h2><small id="kwLibraryCount">0 / 100</small></div>
+            <p>输入你关心的企业、事件或敏感词。匹配新闻中的标题、摘要和已采集正文，并为词语标记关注、风险或问题类型。</p>
+            <label for="kwInput" class="layui-hide">添加关键词</label>
+            <div class="kw-input-row"><textarea id="kwInput" aria-label="添加关键词" placeholder="例如：投诉、召回、数据泄露&#10;多个关键词用逗号或换行分隔" rows="2" maxlength="5000"></textarea><button type="button" id="kwAdd">添加</button></div>
+            <div class="kw-chips" id="kwChips" aria-label="已添加关键词" hidden></div>
+            <button type="button" class="kw-save" id="kwSave">仅保存词库</button>
+            <footer>关键词只保存在你的词库中。<br>“保存并匹配”后，下次打开会继续使用。<br>命中表示出现了关注词，不等同于已确认风险。</footer>
+        </aside>
+        <div class="kw-main">
+            <form class="kw-filter" id="kwForm">
+                <label>开始日期<input type="date" id="kwStartDate" required aria-label="开始日期"></label>
+                <label>结束日期<input type="date" id="kwEndDate" required aria-label="结束日期"></label>
+                <label>匹配方式<select id="kwMode" aria-label="匹配方式"><option value="any">包含任意一个关键词</option><option value="all">同时包含全部关键词</option></select></label>
+                <button type="submit" id="kwRun">保存并匹配</button>
+            </form>
+            <div class="kw-quick-ranges"><span>快捷范围</span><button type="button" data-watch-range="today">今天</button><button type="button" data-watch-range="week">近7天</button><button type="button" data-watch-range="month">本月</button></div>
+            <p class="kw-status" id="kwStatus" role="status">正在加载关键词库…</p>
+            <section class="kw-overview" id="kwOverview" aria-label="阶段匹配概览" hidden>
+                <div class="kw-metrics"><div><span>匹配新闻</span><strong id="kwMetricNews">0</strong><small>篇</small></div><div><span>命中风险词</span><strong id="kwMetricRisk">0</strong><small>个</small></div><div><span>命中问题词</span><strong id="kwMetricProblem">0</strong><small>个</small></div></div>
+                <div class="kw-stats-heading"><h2>关键词命中分布</h2><small>统计整个查询阶段；类型由你在词库中设置</small></div>
+                <div class="kw-word-stats" id="kwWordStats"></div>
+            </section>
+            <div class="kw-ai-action"><a id="kwAnalyze" class="btn btn-secondary btn-sm" hidden>让 AI 解读本阶段结果 ↗</a></div>
+            <div class="kw-results-heading"><strong id="kwCount">等待查询</strong><span id="kwRange"></span></div>
+            <div class="kw-results" id="kwResults" aria-live="polite"></div>
+            <nav class="kw-pagination" aria-label="匹配新闻分页"><button type="button" id="kwPrev" disabled>上一页</button><span id="kwPage">1 / 1</span><button type="button" id="kwNext" disabled>下一页</button></nav>
+        </div>
+    </section>
+    <details class="kw-legacy" id="legacyRiskOverview">
+        <summary>查看历史规则分析与统计</summary>
+        <p class="kw-legacy-note">此处为原有固定规则的历史分析，与上方个人关键词匹配结果分别展示。</p>
+        <div class="kw-legacy-toolbar"><span id="statusText" style="font-size:12px;color:var(--ink-muted);">就绪</span><button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">运行原有规则分析</button></div>
+    <!-- Stat cards: row 1 — primary metrics -->
+    <div class="senti-grid-5" id="statCardsRowA">
+        <div class="senti-stat"><div class="ss-label">分析总数</div><div class="ss-value">{{ stats.get('total_reports', 0) }}</div><div class="ss-sub">条风险报告</div></div>
+        <div class="senti-stat sev-critical"><div class="ss-label">严重风险</div><div class="ss-value" id="criticalCnt">{{ stats.get('critical', 0) }}</div><div class="ss-sub">需立即处理</div></div>
+        <div class="senti-stat sev-high"><div class="ss-label">高风险</div><div class="ss-value" id="highCnt">{{ stats.get('high', 0) }}</div><div class="ss-sub">需重点关注</div></div>
+    </div>
+    <!-- Stat cards: row 2 — data sources -->
+    <div class="senti-grid-5b">
+        <div class="senti-stat"><div class="ss-label">瞭望数据</div><div class="ss-value">{{ stats.get('spy_data_count', 0) }}</div><div class="ss-sub">情报采集条目</div></div>
+        <div class="senti-stat"><div class="ss-label">对话数据</div><div class="ss-value">{{ stats.get('chat_data_count', 0) }}</div><div class="ss-sub">AI对话消息</div></div>
+    </div>
+
+    <!-- Row 1: Risk distribution + alerts -->
+    <div class="senti-grid-3">
+        <div class="senti-panel">
+            <div class="sp-header"><i class="fas fa-chart-pie"></i> 风险等级分布</div>
+            <div class="sp-body ch-sm" id="riskPieChart"></div>
+        </div>
+        <div class="senti-panel">
+            <div class="sp-header"><i class="fas fa-exclamation-triangle"></i> 实时风险告警</div>
+            <div class="sp-body ch-sm" style="overflow:hidden;">
+                <ul class="alert-list" id="alertList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Topic risk + Source distribution -->
+    <div class="senti-grid-1-1">
+        <div class="senti-panel">
+            <div class="sp-header"><i class="fas fa-layer-group"></i> 主题风险分析</div>
+            <div class="sp-body ch-md" id="topicRiskChart"></div>
+        </div>
+        <div class="senti-panel">
+            <div class="sp-header"><i class="fas fa-share-alt"></i> 风险来源分布</div>
+            <div class="sp-body ch-md" id="sourceChart"></div>
+        </div>
+    </div>
+
+    <!-- Row 3: Wordcloud -->
+    <div class="senti-panel" style="margin-bottom:var(--space-4);">
+        <div class="sp-header"><i class="fas fa-cloud"></i> 风险关键词词云</div>
+        <div class="sp-body ch-sm" id="wordcloudChart"></div>
+    </div>
+</details>
+</div>
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/keyword-watch.js') }}"></script>
+<script src="{{ static_url('dist/echarts/echarts.min.js') }}"></script>
+<script src="{{ static_url('dist/echarts/echarts-wordcloud.min.js') }}"></script>
+<script>
+layui.use(['jquery', 'layer'], function(){
+    var $ = layui.jquery, layer = layui.layer;
+    var chartInstances = [];
+    window.addEventListener('resize', function(){
+        chartInstances.forEach(function(c){ try { c.resize(); } catch(e){} });
+    });
+    window.addEventListener('beforeunload', function(){
+        chartInstances.forEach(function(c){ try { c.dispose(); } catch(e){} });
+    });
+
+    // Light theme chart config
+    var tooltipStyle = {
+        backgroundColor: 'rgba(255,255,255,0.96)',
+        borderColor: '#e0e0e0',
+        textStyle: { color: '#333', fontSize: 12 }
+    };
+    var chartTextStyle = { color: '#64748b', fontSize: 11 };
+    var riskColors = {
+        critical: '#dc4545', high: '#d69a32', medium: '#3293b6', low: '#329b72'
+    };
+    var brandColors = [InsightTheme.accent,'#d69a32','#c46a45','#8272c8','#3293b6','#aa71a5','#329b72','#8c9151','#856e68'];
+    var wcColors = brandColors.concat(['#a87958','#96784b','#ad8077','#b88791','#a99a56']);
+
+    function showChartError(domId, msg){
+        var dom = document.getElementById(domId);
+        if (!dom) return;
+        dom.innerHTML = '<div class="chart-error-state">'+(msg||'图表加载失败')+'</div>';
+    }
+
+    function loadCharts(){
+        // Risk distribution pie
+        $.get('/api/sentiment?action=distribution', function(r){
+            if(r.code!==0||!r.data) return;
+            var dom = document.getElementById('riskPieChart');
+            if(!dom) return;
+            var chart = echarts.init(dom); chartInstances.push(chart);
+            var riskLabels = {critical:'严重', high:'高', medium:'中', low:'低'};
+            var data = r.data.map(function(d,i){
+                return { value:d.cnt, name:riskLabels[d.risk_level]||d.risk_level,
+                    itemStyle:{ color: riskColors[d.risk_level] || brandColors[i%4] } };
+            });
+            if(data.length===0) { showChartError('riskPieChart','暂无数据，请先执行分析'); return; }
+            chart.setOption({
+                tooltip: [tooltipStyle],
+                legend: { bottom: 0, textStyle: chartTextStyle },
+                series: [{ type: 'pie', radius: ['45%','70%'], center: ['50%','43%'], roseType: 'radius',
+                    label: { formatter: '{b}\n{d}%', fontSize: 10, color: '#666' },
+                    emphasis: { label: { fontSize: 14, fontWeight: 'bold' },
+                        itemStyle: { shadowBlur: 15, shadowColor: 'rgba(0,0,0,0.15)' } },
+                    data: data }]
+            });
+        });
+
+        // Source distribution - donut chart
+        $.get('/api/sentiment?action=source_dist', function(r){
+            if(r.code!==0||!r.data) return;
+            var dom = document.getElementById('sourceChart');
+            if(!dom) return;
+            var chart = echarts.init(dom); chartInstances.push(chart);
+            var spyData = [], chatData = [];
+            r.data.forEach(function(d){
+                if(d.source_type==='spy_data') spyData.push(d);
+                else chatData.push(d);
+            });
+            var spyTotal = spyData.reduce(function(s,d){return s+d.cnt;},0);
+            var chatTotal = chatData.reduce(function(s,d){return s+d.cnt;},0);
+            if(spyTotal===0&&chatTotal===0) { showChartError('sourceChart','暂无来源数据'); return; }
+            chart.setOption({
+                tooltip: [tooltipStyle],
+                legend: { bottom: 0, textStyle: chartTextStyle },
+                series: [{
+                    type: 'pie', radius: ['40%','65%'], center: ['50%','43%'],
+                    label: { formatter: '{b}\n{c} 条', fontSize: 11, color: '#666' },
+                    emphasis: { label: { fontSize: 15, fontWeight: 'bold' },
+                        itemStyle: { shadowBlur: 10 } },
+                    data: [
+                        { value: spyTotal, name: '瞭望数据', itemStyle: { color: brandColors[0] } },
+                        { value: chatTotal, name: '对话数据', itemStyle: { color: brandColors[4] } }
+                    ]
+                }]
+            });
+        });
+
+        // Topic risk stacked bar
+        $.get('/api/sentiment?action=topic_risk', function(r){
+            if(r.code!==0||!r.data) return;
+            var dom = document.getElementById('topicRiskChart');
+            if(!dom) return;
+            var chart = echarts.init(dom); chartInstances.push(chart);
+            var data = Array.isArray(r.data) ? r.data : [];
+            if(data.length===0) { showChartError('topicRiskChart','暂无主题数据'); return; }
+            var topics = data.map(function(d){ return d.topic; });
+            var riskLevels = [
+                { name:'严重', key:'critical', color: riskColors.critical },
+                { name:'高风险', key:'high', color: riskColors.high },
+                { name:'中风险', key:'medium', color: riskColors.medium },
+                { name:'低风险', key:'low', color: riskColors.low }
+            ];
+            var series = riskLevels.map(function(rl){
+                return {
+                    name: rl.name, type: 'bar', stack: 'total', barWidth: 20, barGap: '25%',
+                    data: data.map(function(d){ return d[rl.key] || 0; }),
+                    itemStyle: { color: rl.color, borderRadius: rl.key==='low'?[4,4,0,0]:0 },
+                    label: { show: true, fontSize: 9, color: '#fff', formatter: function(p){ return p.value>0?p.value:''; } }
+                };
+            });
+            series.reverse();
+            chart.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+                legend: { data: riskLevels.map(function(r){return r.name;}), bottom: 0, textStyle: chartTextStyle },
+                grid: { left: 80, right: 40, top: 15, bottom: 50 },
+                xAxis: { type: 'value',
+                    axisLine: { lineStyle: { color: '#ddd' } },
+                    axisLabel: { color: '#666', fontSize: 10 },
+                    splitLine: { lineStyle: { color: '#f0f0f0' } } },
+                yAxis: { type: 'category', data: topics.slice().reverse(),
+                    axisLine: { lineStyle: { color: '#ddd' } },
+                    axisLabel: { color: '#666', fontSize: 10, width: 70, overflow: 'truncate' } },
+                series: series
+            });
+            try {
+                var opt = chart.getOption();
+                opt.tooltip = [tooltipStyle];
+                chart.setOption(opt, true);
+            } catch(e){}
+        });
+
+        // Word cloud
+        $.get('/api/sentiment?action=reports&limit=100', function(r){
+            if(r.code!==0||!r.data) return;
+            var dom = document.getElementById('wordcloudChart');
+            if(!dom) return;
+            var chart = echarts.init(dom); chartInstances.push(chart);
+            var kwMap = {};
+            r.data.forEach(function(d){
+                if(d.keywords){
+                    d.keywords.split(',').forEach(function(k){
+                        k = k.trim(); if(k) kwMap[k] = (kwMap[k]||0)+1;
+                    });
+                }
+            });
+            var wcData = Object.keys(kwMap).map(function(k){
+                return { name:k, value:kwMap[k] };
+            }).sort(function(a,b){return b.value-a.value;}).slice(0,30);
+            if(!wcData.length) wcData = [{name:'暂无数据', value:1}];
+            chart.setOption({
+                series: [{ type: 'wordCloud', shape: 'circle',
+                    left: 'center', top: 'center', width: '95%', height: '95%',
+                    sizeRange: [10, 32], rotationRange: [-30,30], rotationStep: 15, gridSize: 5,
+                    layoutAnimation: true,
+                    textStyle: {
+                        fontFamily: 'Noto Sans SC, "Microsoft YaHei", sans-serif', fontWeight: 'bold',
+                        color: function(){ return wcColors[Math.floor(Math.random()*wcColors.length)]; }
+                    },
+                    emphasis: { textStyle: { shadowBlur: 10, shadowColor: brandColors[0] } },
+                    data: wcData }]
+            });
+        });
+
+        // Risk alerts list
+        $.get('/api/sentiment?action=reports&limit=15', function(r){
+            var list = $('#alertList'); list.empty();
+            if(r.code!==0||!Array.isArray(r.data)||r.data.length===0){
+                list.html('<li style="justify-content:center;color:var(--ink-faint);padding:16px;">暂无风险数据，请点击"开始分析"</li>');
+                return;
+            }
+            var levelNames = {critical:'严重', high:'高', medium:'中', low:'低'};
+            r.data.forEach(function(d){
+                var lvl = d.risk_level || 'low';
+                var content = (d.content||'未知').substring(0, 60);
+                var time = (d.analyzed_at||'').substring(0,10);
+                var topic = '';
+                if(d.keywords){
+                    var kws = d.keywords.split(',');
+                    topic = kws[kws.length-1] || '';
+                }
+                list.append('<li>'
+                    +'<span class="alert-badge '+lvl+'">'+(levelNames[lvl]||lvl)+'</span>'
+                    +'<span class="alert-text">'+(topic?'['+topic+'] ':'')+content+'</span>'
+                    +'<span class="alert-meta">'+time+'</span>'
+                    +'</li>');
+            });
+        });
+    }
+
+    var oldChartsLoaded=false;
+    document.getElementById('legacyRiskOverview').addEventListener('toggle',function(){if(this.open){if(!oldChartsLoaded){oldChartsLoaded=true;loadCharts();}else chartInstances.forEach(function(c){c.resize();});}});
+
+    window.runAnalysis = function(){
+        var btn = $('#analyzeBtn'); btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> 分析中...');
+        $('#statusText').text('正在分析数据...');
+        $.post('/api/sentiment', {action:'analyze', _xsrf:'{{ handler.xsrf_token }}'}, function(r){
+            btn.prop('disabled', false).html('<i class="fas fa-play"></i> 开始分析');
+            if(r.code===0){
+                $('#statusText').text('分析完成');
+                layer.msg(r.msg, {icon:1});
+                setTimeout(function(){ location.reload(); }, 1500);
+            } else {
+                $('#statusText').text('分析失败');
+                layer.msg(r.msg, {icon:2});
+            }
+        }, 'json').fail(function(){
+            btn.prop('disabled', false).html('<i class="fas fa-play"></i> 开始分析');
+            $('#statusText').text('请求失败');
+        });
+    };
+});
+</script>
+{% end %}

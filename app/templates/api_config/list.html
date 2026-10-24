@@ -1,0 +1,59 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page management-page" data-management="api_config">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-plug"></i> 接口连接</h1>
+            <p class="page-subtitle">管理外部API接口配置信息</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="dataTable" lay-filter="dataTable"></table>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i class="layui-icon layui-icon-add-1"></i> 新增接口</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i> 批量删除</button>
+    </div>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script type="text/html" id="formTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container" lay-filter="dataForm">
+            <input type="hidden" name="id"><input type="hidden" name="action" id="formAction"><input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+            <div class="layui-form-item"><label class="layui-form-label">接口名称</label><div class="layui-input-block"><input type="text" name="name" required class="layui-input"></div></div>
+            <div class="layui-form-item"><label class="layui-form-label">API地址</label><div class="layui-input-block"><input type="text" name="api_url" required class="layui-input" placeholder="https://api.example.com/v1/endpoint"></div></div>
+            <div class="layui-form-item"><label class="layui-form-label">请求方法</label><div class="layui-input-block"><select name="method"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option></select></div></div>
+            <details class="form-advanced"><summary>高级配置 · 请求头与参数（选填）</summary>
+            <div class="layui-form-item"><label class="layui-form-label">Headers</label><div class="layui-input-block"><textarea name="headers" placeholder='{"Content-Type": "application/json"}' class="layui-textarea" rows="3"></textarea></div></div>
+            <div class="layui-form-item"><label class="layui-form-label">参数</label><div class="layui-input-block"><textarea name="params" placeholder='{"keyword": "示例"}' class="layui-textarea" rows="3"></textarea></div></div>
+            </details>
+            <div class="layui-form-item"><label class="layui-form-label">状态</label><div class="layui-input-block"><select name="is_active"><option value="1">启用</option><option value="0">停用</option></select></div></div>
+            <button class="layui-hide" lay-submit lay-filter="saveData" id="realSaveBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveBtn').click()">保存</button>
+        <button class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/management-cards.js') }}"></script>
+<script>
+layui.use(['laytpl','table','form','layer','jquery'],function(){
+    var table=layui.table,form=layui.form,layer=layui.layer,$=layui.jquery,xsrf='{{ handler.xsrf_token }}';
+    ManagementCards.render({elem:'#dataTable',url:'/api/api_config',toolbar:'#toolbarDemo',page:{limit:20},defaultToolbar:['filter'],cols:[[{type:'checkbox'},{field:'id',title:'ID',width:70},{field:'name',title:'接口名称',minWidth:160},{field:'api_url',title:'API地址',minWidth:220},{field:'method',title:'方法',width:80},{field:'is_active',title:'状态',width:80,templet:function(d){return d.is_active==1?'<span class="layui-badge layui-bg-blue">启用</span>':'<span class="layui-badge">停用</span>';}},{field:'create_at',title:'创建时间',width:170},{fixed:'right',title:'操作',toolbar:'#barDemo',width:160}]]});
+    ManagementCards.on('toolbar(dataTable)',function(obj){if(obj.event==='add')openForm('add',{});else if(obj.event==='batchDel'){var d=ManagementCards.checkStatus(obj.config.id).data;if(!d.length)return layer.msg('请选择记录');layer.confirm('确定删除'+d.length+'条？',function(i){$.post('/api/api_config',{action:'batch_delete',ids:d.map(function(x){return x.id}).join(','),_xsrf:xsrf},function(r){layer.close(i);layer.msg(r.msg,{icon:r.code===0?1:2});ManagementCards.reload('dataTable');},'json');});}});
+    ManagementCards.on('tool(dataTable)',function(obj){if(obj.event==='del'){layer.confirm('确定删除？',function(i){$.post('/api/api_config',{action:'delete',id:obj.data.id,_xsrf:xsrf},function(r){layer.close(i);if(r.code===0){obj.del();layer.msg(r.msg,{icon:1});}else layer.msg(r.msg,{icon:2});},'json');});}else if(obj.event==='edit')openForm('edit',obj.data);});
+    function openForm(act,data){layer.open({type:1,title:act==='add'?'新增接口':'编辑接口',area:['640px','620px'],content:$('#formTpl').html(),success:function(layero,idx){$('#formAction').val(act);if(act==='edit')form.val('dataForm',data);form.on('submit(saveData)',function(fd){$.post('/api/api_config',fd.field,function(r){if(r.code===0){layer.close(idx);layer.msg(r.msg,{icon:1});ManagementCards.reload('dataTable');}else layer.msg(r.msg,{icon:2});},'json');return false;});}});}
+});
+</script>
+{% end %}

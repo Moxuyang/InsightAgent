@@ -1,0 +1,10 @@
+# Main application and collection features
+tornado>=6.4,<7
+openai>=1.30,<3
+langgraph>=1.2.9,<2
+requests>=2.31,<3
+urllib3>=2,<3
+beautifulsoup4>=4.12,<5
+playwright>=1.40,<2
+# Optional MySQL backend, including caching_sha2_password authentication
+PyMySQL[rsa]>=1.1,<2

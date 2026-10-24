@@ -1,0 +1,728 @@
+{% extends "../base.html" %}
+{% block style %}
+<style>
+    html { scroll-behavior: smooth; }
+
+    /* Fade-in for chart rows — does NOT set children to opacity:0 (ECharts-safe) */
+    .fade-in-row {
+        animation: fadeIn var(--duration-400) var(--ease-out) both;
+    }
+
+    /* Tighten dashboard spacing: override admin-page defaults */
+    .admin-page {
+        padding-top: var(--space-3);
+    }
+    .page-header {
+        margin-bottom: var(--space-2);
+    }
+
+    /* Dashboard grid */
+    .dash-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+    }
+    .dash-grid-6 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+    }
+    .dash-grid-2 {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+    }
+    .dash-grid-3col {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+    }
+    .dash-grid-1-1 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+    }
+
+    /* Stat card — elevated, tinted, no generic border */
+    .dash-stat {
+        background: linear-gradient(135deg, var(--surface) 0%, oklch(0.965 0.003 25) 100%);
+        border: none;
+        border-radius: var(--radius);
+        padding: var(--space-2) var(--space-3);
+        display: flex; flex-direction: column;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 1px 3px oklch(0 0 0 / 0.04), 0 2px 8px oklch(0 0 0 / 0.025);
+        transition: transform var(--duration-150) var(--ease-out), box-shadow var(--duration-150) var(--ease-out);
+    }
+    .dash-stat::after {
+        content: '';
+        position: absolute;
+        left: 0; top: 12%; bottom: 12%;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        background: var(--border-light);
+        transition: background var(--duration-200) var(--ease-out), height var(--duration-200) var(--ease-out);
+    }
+    .dash-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 8%, transparent), 0 1px 3px oklch(0 0 0 / 0.06);
+    }
+    .dash-stat.accent::after { background: var(--accent); }
+    .dash-stat:active { transform: translateY(0) scale(0.985); }
+    .dash-stat .ds-label {
+        font-size: var(--text-xs);
+        color: var(--ink-muted);
+        font-weight: var(--weight-medium);
+        margin-bottom: 2px;
+        letter-spacing: var(--tracking-wide);
+    }
+    .dash-stat .ds-value {
+        font-size: var(--text-xl);
+        font-weight: var(--weight-bold);
+        color: var(--ink-heavy);
+        font-family: var(--font-mono);
+        letter-spacing: -0.025em;
+        line-height: 1.15;
+    }
+    .dash-stat .ds-sub {
+        font-size: 11px;
+        color: var(--ink-faint);
+        margin-top: 2px;
+    }
+    .dash-stat.accent .ds-value { color: var(--accent); }
+
+    /* Chart panel — elevated surface with subtle depth */
+    .dash-panel {
+        background: linear-gradient(135deg, var(--surface) 0%, oklch(0.972 0.002 25) 100%);
+        border: none;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: 0 1px 3px oklch(0 0 0 / 0.04), 0 2px 8px oklch(0 0 0 / 0.025);
+        transition: box-shadow var(--duration-200) var(--ease-out);
+    }
+    .dash-panel:hover {
+        box-shadow: 0 2px 6px oklch(0 0 0 / 0.06), 0 4px 14px oklch(0 0 0 / 0.03);
+    }
+    .dash-panel .dp-header {
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid oklch(0.90 0.004 25);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--ink-heavy);
+        display: flex; align-items: center; gap: var(--space-2);
+        background: oklch(0.978 0.002 25 / 0.6);
+        backdrop-filter: blur(4px);
+    }
+    .dash-panel .dp-header i { color: var(--accent); font-size: 13px; }
+    .dash-panel .dp-body {
+        padding: var(--space-2);
+        position: relative;
+    }
+    .dp-body.chart-sm { height: 260px; }
+    .dp-body.chart-md { height: 300px; }
+    .dp-body.chart-lg { height: 340px; }
+
+    /* Insight card */
+    .insight-card {
+        background: linear-gradient(135deg, oklch(0.965 0.012 22) 0%, oklch(0.955 0.008 22) 100%);
+        border: none;
+        border-radius: var(--radius);
+        padding: var(--space-2) var(--space-3);
+        display: flex; align-items: flex-start; gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        box-shadow: 0 1px 4px color-mix(in srgb, var(--accent) 6%, transparent);
+    }
+    .insight-card i {
+        color: var(--accent);
+        font-size: var(--text-lg);
+        flex-shrink: 0;
+        margin-top: 2px;
+        opacity: 0.85;
+    }
+    .insight-card .insight-text {
+        font-size: var(--text-sm);
+        color: var(--ink);
+        line-height: var(--leading-relaxed);
+    }
+    .insight-card .insight-text strong {
+        color: var(--ink-heavy);
+    }
+
+    /* Top list mini-table */
+    .top-list {
+        list-style: none;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+    .top-list li {
+        display: flex; align-items: center; gap: var(--space-3);
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid oklch(0.90 0.004 25);
+        font-size: var(--text-xs);
+        transition: background var(--duration-100) var(--ease-out);
+        border-radius: var(--radius-xs);
+        margin: 0 2px;
+    }
+    .top-list li:hover {
+        background: oklch(0.96 0.004 25);
+    }
+    .top-list li:last-child { border-bottom: none; }
+    .top-list .tl-rank {
+        width: 24px; height: 24px;
+        border-radius: var(--radius-xs);
+        background: var(--bg-subtle);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: var(--weight-bold);
+        font-size: 11px;
+        color: var(--ink-muted);
+        flex-shrink: 0;
+        transition: transform var(--duration-100) var(--ease-out);
+    }
+    .top-list li:hover .tl-rank {
+        transform: scale(1.08);
+    }
+    .top-list li:nth-child(1) .tl-rank,
+    .top-list li:nth-child(2) .tl-rank,
+    .top-list li:nth-child(3) .tl-rank {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 1px 4px color-mix(in srgb, var(--accent) 30%, transparent);
+    }
+    .top-list .tl-name {
+        flex: 1; min-width: 0;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        color: var(--ink);
+    }
+    .top-list .tl-count {
+        flex-shrink: 0;
+        font-family: var(--font-mono);
+        font-weight: var(--weight-semibold);
+        color: var(--ink-muted);
+    }
+
+    /* Earth globe overlay info bar */
+    .globe-info-bar {
+        position: absolute;
+        bottom: 8px; left: 8px; right: 8px;
+        background: oklch(0.12 0.008 250 / 0.88);
+        backdrop-filter: blur(16px) saturate(140%);
+        -webkit-backdrop-filter: blur(16px) saturate(140%);
+        border: 1px solid oklch(1 0 0 / 0.08);
+        border-radius: var(--radius);
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 10;
+        font-size: 12px;
+        color: oklch(0.88 0.005 25);
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: thin;
+        scrollbar-color: oklch(1 0 0 / 0.18) transparent;
+    }
+    .globe-info-bar::-webkit-scrollbar { height: 4px; }
+    .globe-info-bar::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 0.18); border-radius: 2px; }
+    .globe-info-bar .gib-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+        background: oklch(1 0 0 / 0.05);
+        border-radius: var(--radius-xs);
+        padding: 5px 10px;
+        transition: background 0.2s var(--ease-out), transform 0.15s var(--ease-out);
+        cursor: pointer;
+        user-select: none;
+    }
+    .globe-info-bar .gib-tag:hover {
+        background: oklch(1 0 0 / 0.14);
+    }
+    .globe-info-bar .gib-tag:active {
+        transform: scale(0.95);
+    }
+    .globe-info-bar .gib-tag.active {
+        background: oklch(0.62 0.18 75 / 0.2);
+        box-shadow: 0 0 0 1px oklch(0.62 0.18 75 / 0.45);
+    }
+    .globe-info-bar .gib-dot {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent);
+        flex-shrink: 0;
+    }
+    .globe-info-bar .gib-name {
+        color: oklch(0.96 0.003 25);
+        font-weight: var(--weight-semibold);
+        font-size: 12px;
+    }
+    .globe-info-bar .gib-count {
+        color: oklch(0.72 0.005 25);
+        font-size: 11px;
+        background: oklch(1 0 0 / 0.08);
+        border-radius: var(--radius-full);
+        padding: 1px 8px;
+    }
+    .globe-container { position: relative; }
+
+    /* Chart error state */
+    .chart-error-state {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        height: 100%; gap: var(--space-2);
+        color: var(--ink-faint);
+        font-size: 12px; padding: 12px;
+    }
+    .chart-error-state::before {
+        content: '';
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: oklch(0.94 0.01 25);
+        opacity: 0.6;
+    }
+
+    /* Error banner */
+    .dash-error-banner {
+        position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+        z-index: var(--z-toast, 500);
+        background: var(--error-bg);
+        color: var(--error);
+        border: 1px solid oklch(0.50 0.20 20 / 0.3);
+        border-radius: var(--radius-sm);
+        padding: 10px 24px;
+        font-size: 12px;
+        display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 4px 20px oklch(0.50 0.20 20 / 0.12);
+        animation: dashErrorIn 0.3s var(--ease-out);
+    }
+    .dash-error-banner .retry-btn {
+        background: var(--accent); border: none; color: #fff;
+        border-radius: var(--radius-xs); padding: 3px 12px;
+        cursor: pointer; font-size: 11px;
+    }
+    .dash-error-banner .retry-btn:hover { opacity: 0.9; }
+    .dash-error-banner .dismiss-btn {
+        background: none; border: none; color: var(--ink-muted);
+        cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1;
+    }
+    @keyframes dashErrorIn {
+        from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    .dash-spinner {
+        display: flex; align-items: center; justify-content: center;
+        height: 100%; color: var(--ink-muted); font-size: 11px; gap: 8px;
+    }
+    .dash-spinner::before {
+        content: '';
+        width: 18px; height: 18px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: dashSpin 0.8s linear infinite;
+    }
+    @keyframes dashSpin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 1000px) {
+        .dash-grid { grid-template-columns: repeat(2, 1fr); }
+        .dash-grid-6 { grid-template-columns: repeat(2, 1fr); }
+        .dash-grid-2, .dash-grid-3col { grid-template-columns: 1fr; }
+        .dash-grid-1-1 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+        .dash-grid, .dash-grid-6 { grid-template-columns: 1fr; }
+    }
+</style>
+{% end %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-chart-pie"></i> 数智大屏</h1>
+            <p class="page-subtitle">系统总览看板 &middot; <span id="liveDate">----/--/--</span> <span id="liveTime">--:--:--</span></p>
+        </div>
+        <a class="btn btn-secondary" href="/user_dashboard?question=请概括系统数据总览，并分析今天采集的新闻和全库来源分布，引用新闻来源，指出需要继续核查的线索。">让 AI 解读数据 ↗</a>
+    </div>
+
+    <!-- Stat cards: row 1 — primary metrics -->
+    <div class="dash-grid fade-in-row" id="statCardsRowA">
+        <div class="dash-stat"><div class="ds-label">用户总数</div><div class="ds-value">-</div><div class="ds-sub">活跃账户</div></div>
+        <div class="dash-stat accent"><div class="ds-label">模型引擎</div><div class="ds-value">-</div><div class="ds-sub">AI模型接入</div></div>
+        <div class="dash-stat"><div class="ds-label">瞭望数据</div><div class="ds-value">-</div><div class="ds-sub">情报采集条目</div></div>
+    </div>
+    <!-- Stat cards: row 2 — Q&A metrics -->
+    <div class="dash-grid-6 fade-in-row">
+        <div class="dash-stat"><div class="ds-label">会话总数</div><div class="ds-value">-</div><div class="ds-sub">AI对话次数</div></div>
+        <div class="dash-stat"><div class="ds-label">问数总量</div><div class="ds-value">-</div><div class="ds-sub">累计提问</div></div>
+        <div class="dash-stat accent"><div class="ds-label">今日问数</div><div class="ds-value">-</div><div class="ds-sub">当日活跃度</div></div>
+    </div>
+
+    <!-- Insight banner -->
+    <div class="insight-card" id="insightBanner">
+        <i class="fas fa-lightbulb"></i>
+        <div class="insight-text">数据加载中，请稍候...</div>
+    </div>
+
+    <!-- Row: Globe + Trend (2:1) -->
+    <div class="dash-grid-2 fade-in-row">
+        <div class="dash-panel">
+            <div class="dp-header globe-heading"><span><i class="fas fa-globe-asia"></i> 全球新闻热点分布</span><span class="globe-controls"><button type="button" id="globeMode" aria-pressed="false">平面视图</button><button type="button" id="globeReset">重置视角</button></span></div>
+            <div class="dp-body chart-lg globe-container">
+                <div id="globeChart" role="region" aria-label="新闻热点地理分布"></div><div class="globe-status" id="globeStatus" role="status">地图加载中…</div>
+                <div class="globe-info-bar" id="globeInfoBar"></div>
+            </div>
+        </div>
+        <div class="dash-panel" style="display:flex;flex-direction:column;">
+            <div class="dp-header"><i class="fas fa-chart-line"></i> 系统数据活跃度</div>
+            <div class="dp-body chart-md" id="trendChart" style="flex:1;min-height:0;"></div>
+        </div>
+    </div>
+
+    <!-- Row: Hot topics + Data sources + Wordcloud -->
+    <div class="dash-grid-3col fade-in-row">
+        <div class="dash-panel">
+            <div class="dp-header"><i class="fas fa-tags"></i> 热点主题分布</div>
+            <div class="dp-body chart-sm" id="productPieChart"></div>
+        </div>
+        <div class="dash-panel">
+            <div class="dp-header"><i class="fas fa-database"></i> 数据源采集分布</div>
+            <div class="dp-body chart-sm" id="regionBarChart"></div>
+        </div>
+        <div class="dash-panel">
+            <div class="dp-header"><i class="fas fa-cloud"></i> 系统热词云</div>
+            <div class="dp-body chart-sm" id="wordcloudChart"></div>
+        </div>
+    </div>
+
+    <!-- Row: Recent spy data -->
+    <div class="dash-panel">
+        <div class="dp-header"><i class="fas fa-newspaper"></i> 最新瞭望采集</div>
+        <div class="dp-body chart-sm" style="overflow:hidden;">
+            <ul class="top-list" id="recentSpyList"></ul>
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('dist/echarts/echarts.min.js') }}"></script>
+<script src="{{ static_url('dist/echarts-gl/echarts-gl.min.js') }}"></script>
+<script src="{{ static_url('dist/echarts/echarts-wordcloud.min.js') }}"></script>
+<script src="{{ static_url('js/globe.js') }}"></script>
+<script>
+layui.use(['jquery'], function(){
+    var $ = layui.jquery;
+    var chartInstances = [];
+
+    var resizeTimer = null;
+    var chartObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onResize) : null;
+    if (chartObserver) document.querySelectorAll('.dp-body').forEach(function(el){ chartObserver.observe(el); });
+    function onResize(){
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function(){
+            chartInstances.forEach(function(c){ try { c.resize(); } catch(e){} });
+        }, 150);
+    }
+    window.addEventListener('resize', onResize);
+    window.addEventListener('beforeunload', function(){
+        if (chartObserver) chartObserver.disconnect();
+        chartInstances.forEach(function(c){ try { c.dispose(); } catch(e){} });
+    });
+
+    function showDashError(msg, canRetry, retryFn){
+        var existing = document.querySelector('.dash-error-banner');
+        if (existing) existing.remove();
+        var banner = document.createElement('div');
+        banner.className = 'dash-error-banner';
+        banner.setAttribute('role', 'alert');
+        banner.innerHTML = '<span>⚠ ' + (msg || '数据加载失败') + '</span>';
+        if (canRetry && typeof retryFn === 'function') {
+            var btn = document.createElement('button');
+            btn.className = 'retry-btn'; btn.textContent = '重试';
+            btn.onclick = function(){ banner.remove(); retryFn(); };
+            banner.appendChild(btn);
+        }
+        var dismiss = document.createElement('button');
+        dismiss.className = 'dismiss-btn'; dismiss.innerHTML = '&times;';
+        dismiss.setAttribute('aria-label','关闭');
+        dismiss.onclick = function(){ banner.remove(); };
+        banner.appendChild(dismiss);
+        document.body.appendChild(banner);
+    }
+
+    function showChartError(domId, msg){
+        var dom = document.getElementById(domId);
+        if (!dom) return;
+        dom.innerHTML = '<div class="chart-error-state">' + (msg || '图表加载失败') + '</div>';
+    }
+
+    function updateClock(){
+        var now = new Date();
+        var timeEl = document.getElementById('liveTime');
+        var dateEl = document.getElementById('liveDate');
+        if (timeEl) timeEl.textContent =
+            ('0'+now.getHours()).slice(-2)+':'+('0'+now.getMinutes()).slice(-2)+':'+('0'+now.getSeconds()).slice(-2);
+        if (dateEl) dateEl.textContent =
+            now.getFullYear()+'/'+('0'+(now.getMonth()+1)).slice(-2)+'/'+('0'+now.getDate()).slice(-2);
+    }
+    updateClock(); setInterval(updateClock, 1000);
+
+    function fmtNum(n) {
+        if (n == null) return '0';
+        if (n >= 1e7) return (n / 1e7).toFixed(1) + '千万';
+        if (n >= 1e4) return (n / 1e4).toFixed(1) + '万';
+        return String(n);
+    }
+
+    // Populate stat cards
+    {% if stats %}
+    (function(){
+        var vals = [
+            {{ stats.get('user_count', 0) }}, {{ stats.get('model_count', 0) }},
+            {{ stats.get('spy_data_count', 0) }}, {{ stats.get('session_count', 0) }},
+            {{ stats.get('query_count', 0) }}, {{ stats.get('today_queries', 0) }}
+        ];
+        $('.dash-grid .dash-stat, .dash-grid-6 .dash-stat').each(function(i){
+            if(vals[i] !== undefined) $(this).find('.ds-value').text(fmtNum(vals[i]));
+        });
+    })();
+    {% end %}
+
+    // Light theme chart colors
+    var chartTextColor = '#64748b';
+    var chartAxisColor = '#dbe3ef';
+    var splitColor = '#edf1f7';
+    var chartTextStyle = { color: '#64748b', fontSize: 11 };
+    var tooltipStyle = {
+        backgroundColor: 'rgba(255,255,255,0.96)',
+        borderColor: '#dbe3ef',
+        textStyle: { color: '#1e293b', fontSize: 12 }
+    };
+
+    var brandColors = [
+        InsightTheme.accent, '#d69a32', '#c46a45', '#8272c8',
+        '#329b72', '#3293b6', '#aa71a5',
+        '#8c9151', '#856e68', '#ae8980'
+    ];
+
+    function loadDashboardCharts() {
+        $.ajax({
+            url: '/api/dashboard_charts', type: 'GET', timeout: 15000,
+            success: function(res) {
+                if (res.code !== 0 || !res.data) {
+                    showDashError('数据格式异常，请稍后重试', true, loadDashboardCharts);
+                    return;
+                }
+                var trend = res.data.trend || {};
+                var dist = res.data.distribution || {};
+                var wcData = res.data.wordcloud || [];
+                var globePts = res.data.globe_points || [];
+
+                updateInsight(trend, dist);
+                loadRecentSpy();
+                renderGlobe(globePts);
+                renderWordCloud(wcData);
+                renderTrend(trend);
+                renderPie(dist);
+                renderBar(dist);
+            },
+            error: function(xhr, status) {
+                if (status === 'abort') return;
+                var msg = status === 'timeout' ? '请求超时' : '服务器错误 (' + (xhr && xhr.status || '') + ')';
+                showDashError(msg, true, loadDashboardCharts);
+            }
+        });
+    }
+
+    function updateInsight(trend, dist) {
+        var spyData = Array.isArray(trend.user) ? trend.user : [];
+        var chatData = Array.isArray(trend.sales) ? trend.sales : [];
+        var totalSpy = spyData.reduce(function(a,b){return a+b;}, 0);
+        var totalChat = chatData.reduce(function(a,b){return a+b;}, 0);
+        var prod = Array.isArray(dist.product) ? dist.product : [];
+        var topTopic = prod.length > 0 ? prod[0].name : '暂无';
+        var bomb = $('#insightBanner .insight-text');
+        bomb.html('系统累计采集 <strong>'+fmtNum(totalSpy)+'</strong> 条瞭望情报，'
+            +'处理 <strong>'+fmtNum(totalChat)+'</strong> 次AI对话。'
+            +'当前最热主题为 <strong>"'+topTopic+'"</strong>，'
+            +'数据源覆盖 <strong>'+(Array.isArray(dist.region)?dist.region.length:0)+'</strong> 个渠道。');
+    }
+
+    function loadRecentSpy() {
+        $.get('/api/dashboard_charts?action=recent_spy', function(r){
+            var list = $('#recentSpyList'); list.empty();
+            var rows = (r && r.data) || [];
+            if (!rows.length) { list.html('<li style="justify-content:center;color:var(--ink-faint);padding:12px;">暂无采集数据</li>'); return; }
+            rows.forEach(function(d, i){
+                var title = (d.title || '无标题').substring(0, 30);
+                var src = (d.source_name || '');
+                list.append('<li><span class="tl-rank">'+(i+1)+'</span>'
+                    +'<span class="tl-name" title="'+(d.title||'')+'">'+title+'</span>'
+                    +(src?'<span style="font-size:10px;color:var(--ink-faint);flex-shrink:0;">'+src+'</span>':'')
+                    +'</li>');
+            });
+        });
+    }
+
+    var globeView = new InsightGlobe(document.getElementById('globeChart'), {
+        texture: "{{ static_url('images/earth-map.jpg') }}",
+        info: document.getElementById('globeInfoBar'),
+        mode: document.getElementById('globeMode'),
+        status: document.getElementById('globeStatus')
+    });
+    function renderGlobe(points) { globeView.render(points); }
+    document.getElementById('globeMode').addEventListener('click', function () {
+        globeView.toggle();
+        this.setAttribute('aria-pressed', String(globeView.flat));
+        this.textContent = globeView.flat ? '立体视图' : '平面视图';
+    });
+    document.getElementById('globeReset').addEventListener('click', function () { globeView.reset(); });
+    window.addEventListener('beforeunload', function () { globeView.dispose(); });
+
+    // ===== Trend Line =====
+    function renderTrend(trend) {
+        try {
+            var dom = document.getElementById('trendChart');
+            if (!dom) return;
+            if (dom.__echartInstance) { try { dom.__echartInstance.dispose(); } catch(e){} }
+            var chart = echarts.init(dom);
+            dom.__echartInstance = chart; chartInstances.push(chart);
+            trend = trend || {};
+            var months = Array.isArray(trend.months) ? trend.months : [];
+            var names = Array.isArray(trend.series_names) ? trend.series_names : ['瞭望采集量','AI对话量'];
+            var s1 = Array.isArray(trend.user) ? trend.user : [];
+            var s2 = Array.isArray(trend.sales) ? trend.sales : [];
+            chart.setOption({
+                tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } }.tooltipStyle || tooltipStyle,
+                legend: { data: names, bottom: 0, textStyle: chartTextStyle },
+                grid: { left: 55, right: 25, top: 15, bottom: 40 },
+                xAxis: { type: 'category', data: months, axisLine: { lineStyle: { color: chartAxisColor } },
+                    axisLabel: { color: '#64748b', fontSize: 10, rotate: months.length>15?45:0 } },
+                yAxis: { type: 'value', name: '数量', nameTextStyle: { color: '#64748b', fontSize: 10 },
+                    axisLine: { lineStyle: { color: chartAxisColor } },
+                    axisLabel: { color: '#64748b', fontSize: 11 },
+                    splitLine: { lineStyle: { color: splitColor } } },
+                series: [
+                    { name: names[0], type: 'line', smooth: true, data: s1,
+                        lineStyle: { color: brandColors[0], width: 2 },
+                        itemStyle: { color: brandColors[0] },
+                        areaStyle: { color: InsightTheme.alpha(0.08) },
+                        symbol: 'circle', symbolSize: 5 },
+                    { name: names[1], type: 'line', smooth: true, data: s2,
+                        lineStyle: { color: brandColors[5], width: 2 },
+                        itemStyle: { color: brandColors[5] },
+                        areaStyle: { color: 'rgba(50,147,182,0.08)' },
+                        symbol: 'circle', symbolSize: 5 }
+                ]
+            });
+            // Patch tooltip
+            try {
+                var opt = chart.getOption();
+                opt.tooltip = [tooltipStyle];
+                chart.setOption(opt, true);
+            } catch(e){}
+        } catch(e) { showChartError('trendChart', '趋势图渲染失败'); }
+    }
+
+    // ===== Pie =====
+    function renderPie(dist) {
+        try {
+            var dom = document.getElementById('productPieChart');
+            if (!dom) return;
+            if (dom.__echartInstance) { try { dom.__echartInstance.dispose(); } catch(e){} }
+            var chart = echarts.init(dom);
+            dom.__echartInstance = chart; chartInstances.push(chart);
+            dist = dist || {};
+            var raw = Array.isArray(dist.product) ? dist.product : [];
+            var data = raw.map(function(d,i){
+                return { value: Number(d.value)||0, name: String(d.name||''),
+                    itemStyle: { color: brandColors[i % brandColors.length] } };
+            });
+            if (data.length===0) { showChartError('productPieChart','暂无主题数据'); return; }
+            chart.setOption({
+                tooltip: [tooltipStyle],
+                legend: { bottom: 0, textStyle: chartTextStyle },
+                series: [{ type: 'pie', radius: ['45%','72%'], center: ['50%','43%'], roseType: 'radius',
+                    label: { formatter: '{b}\n{d}%', fontSize: 10, color: '#64748b' },
+                    emphasis: { label: { fontSize: 13, fontWeight: 'bold' },
+                        itemStyle: { shadowBlur: 15, shadowColor: 'rgba(0,0,0,0.15)' } },
+                    data: data }]
+            });
+        } catch(e) { showChartError('productPieChart','饼图渲染失败'); }
+    }
+
+    // ===== Bar =====
+    function renderBar(dist) {
+        try {
+            var dom = document.getElementById('regionBarChart');
+            if (!dom) return;
+            if (dom.__echartInstance) { try { dom.__echartInstance.dispose(); } catch(e){} }
+            var chart = echarts.init(dom);
+            dom.__echartInstance = chart; chartInstances.push(chart);
+            dist = dist || {};
+            var raw = Array.isArray(dist.region) ? dist.region : [];
+            var names = raw.map(function(d){ return String(d.name||''); });
+            var vals = raw.map(function(d){ return Number(d.value)||0; });
+            if (names.length===0) { showChartError('regionBarChart','暂无数据源数据'); return; }
+            chart.setOption({
+                tooltip: [tooltipStyle],
+                grid: { left: 50, right: 20, top: 24, bottom: 30 },
+                xAxis: { type: 'category', data: names,
+                    axisLine: { lineStyle: { color: chartAxisColor } },
+                    axisLabel: { color: '#64748b', fontSize: 10 } },
+                yAxis: { type: 'value', name: '条数',
+                    nameTextStyle: { color: '#64748b', fontSize: 10 },
+                    axisLabel: { color: '#64748b', fontSize: 11 },
+                    splitLine: { lineStyle: { color: splitColor } } },
+                series: [{ type: 'bar', data: vals, barWidth: '50%',
+                    itemStyle: { borderRadius: [4,4,0,0],
+                        color: new echarts.graphic.LinearGradient(0,0,0,1,[
+                            { offset: 0, color: brandColors[0] },
+                            { offset: 1, color: brandColors[3] }
+                        ]) },
+                    label: { show: true, position: 'top', color: '#64748b', fontSize: 10,
+                        formatter: '{c}条' } }]
+            });
+        } catch(e) { showChartError('regionBarChart','柱状图渲染失败'); }
+    }
+
+    // ===== Word Cloud =====
+    function renderWordCloud(wcData) {
+        try {
+            var dom = document.getElementById('wordcloudChart');
+            if (!dom) return;
+            if (!Array.isArray(wcData) || wcData.length===0) {
+                showChartError('wordcloudChart','暂无热词数据'); return;
+            }
+            if (dom.__echartInstance) { try { dom.__echartInstance.dispose(); } catch(e){} }
+            var chart = echarts.init(dom);
+            dom.__echartInstance = chart; chartInstances.push(chart);
+            var wcColors = brandColors.concat(['#e8a87c','#d4a574','#c97d60']);
+            chart.setOption({
+                tooltip: { show: true, formatter: '{b}: {c}' },
+                series: [{ type: 'wordCloud', shape: 'circle',
+                    left: 'center', top: 'center', width: '95%', height: '95%',
+                    sizeRange: [10, 30], rotationRange: [-30, 30], rotationStep: 15,
+                    gridSize: 5, drawOutOfBound: false, layoutAnimation: true,
+                    textStyle: { fontFamily: 'Noto Sans SC, "Microsoft YaHei", sans-serif',
+                        fontWeight: 'bold',
+                        color: function(){ return wcColors[Math.floor(Math.random()*wcColors.length)]; } },
+                    emphasis: { textStyle: { shadowBlur: 10, shadowColor: brandColors[0] } },
+                    data: wcData }]
+            });
+        } catch(e) { showChartError('wordcloudChart','词云渲染失败'); }
+    }
+
+    loadDashboardCharts();
+});
+</script>
+{% end %}

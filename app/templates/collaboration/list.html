@@ -1,0 +1,26 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="messenger" id="messenger" data-xsrf="{{ handler.xsrf_token }}">
+    <aside class="conversation-sidebar">
+        <div class="conversation-title"><div><span class="eyebrow">TEAM SPACE</span><h1>协作消息</h1></div><button class="icon-btn" id="createGroup" title="发起群聊" aria-label="发起群聊">＋</button></div>
+        <div class="conversation-search"><i class="fas fa-search"></i><input id="groupSearch" aria-label="搜索群聊" placeholder="搜索群聊"></div>
+        <div class="conversation-caption">我的群聊 <span id="groupCount"></span></div>
+        <div id="conversationList" class="conversation-list" aria-label="群聊列表"><p class="messenger-status">正在加载会话…</p></div>
+        <button id="loadMoreGroups" class="btn btn-ghost" hidden>加载更多群聊</button>
+        <a class="team-directory" href="/digital_employee/list"><i class="fas fa-robot"></i><div>数字员工<span>管理团队里的 AI 伙伴</span></div><span>↗</span></a>
+    </aside>
+    <section class="conversation-workspace">
+        <div class="conversation-actions" id="conversationActions" hidden><button class="icon-btn mobile-conversations" id="backToConversations" aria-label="返回会话列表">‹</button><div class="active-group-info"><strong id="activeGroupName"></strong><span id="activeGroupDesc"></span></div><button class="btn btn-secondary btn-sm" id="inviteMembers"><i class="fas fa-user-plus"></i> 邀请</button><button class="icon-btn" id="groupMembers" title="群成员" aria-label="查看群成员"><i class="fas fa-users"></i></button><button class="icon-btn" id="groupSettings" title="群设置" aria-label="群设置">···</button></div>
+        <div id="conversationEmpty" class="conversation-empty"><div class="empty-chat-icon"><i class="far fa-comments"></i></div><h2>和团队聊聊，让想法向前一步</h2><p>选择左侧群聊，或邀请同事与数字员工一起协作。<br>在聊天中输入 @，让 AI 伙伴加入讨论。</p><button class="btn btn-primary" id="emptyCreateGroup">＋ 发起群聊</button></div>
+        <iframe id="groupChatFrame" title="群聊消息窗口" hidden></iframe>
+    </section>
+</div>
+<dialog id="peopleDialog" class="people-dialog" aria-labelledby="peopleDialogTitle">
+    <form id="peopleForm"><header><div><h2 id="peopleDialogTitle">发起群聊</h2><p>选择同事和 AI 伙伴，开始一次讨论</p></div><button type="button" class="icon-btn" data-close aria-label="关闭">×</button></header>
+    <div class="people-dialog-content"><section class="people-picker"><input id="peopleSearch" class="form-input" placeholder="搜索联系人或数字员工" aria-label="搜索联系人"><div class="people-tabs"><button type="button" class="is-active" data-kind="user">联系人</button><button type="button" data-kind="employee">数字员工</button></div><div id="peopleList" class="people-list"></div></section><section class="people-selection"><div id="newGroupFields"><label class="form-label" for="newGroupName">给群聊起个名字</label><input class="form-input" id="newGroupName" placeholder="例如：产品讨论小组" maxlength="100"><label class="form-label" for="newGroupDesc">群简介（选填）</label><input class="form-input" id="newGroupDesc" placeholder="这次一起讨论什么？"></div><h3>已选择 <span id="selectedPeopleCount">0</span> 人</h3><div id="selectedPeople" class="selected-people"></div></section></div>
+    <p id="peopleError" class="interaction-error" role="alert"></p><footer><span>数字员工可通过 @ 参与群聊</span><button type="button" class="btn btn-secondary" data-close>取消</button><button class="btn btn-primary" id="savePeople">创建群聊</button></footer></form>
+</dialog>
+<dialog id="settingsDialog" class="group-settings-dialog" aria-label="群设置"><form id="settingsForm"><header><h2>群设置</h2><button type="button" class="icon-btn" data-close aria-label="关闭">×</button></header><label class="form-label" for="editGroupName">群聊名称</label><input class="form-input" id="editGroupName" required maxlength="100"><label class="form-label" for="editGroupDesc">群简介</label><textarea class="form-textarea" id="editGroupDesc"></textarea><p id="settingsError" class="interaction-error" role="alert"></p><footer><button type="button" class="btn btn-danger" id="deleteGroup">解散群聊</button><button class="btn btn-primary" id="saveSettings">保存</button></footer></form></dialog>
+<dialog id="membersDialog" class="group-settings-dialog" aria-label="群成员"><header><h2>群成员</h2><button type="button" class="icon-btn" data-close aria-label="关闭">×</button></header><div id="groupMemberList" class="people-list"></div></dialog>
+{% end %}
+{% block script %}<script src="{{ static_url('js/messenger.js') }}"></script>{% end %}

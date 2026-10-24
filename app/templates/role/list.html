@@ -1,0 +1,240 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page management-page" data-management="role">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-user-shield"></i> 角色与访问权限</h1>
+            <p class="page-subtitle">以职责组织角色，为团队划定清晰的访问范围</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="roleTable" lay-filter="roleTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">
+            <i class="layui-icon layui-icon-add-1"></i> 新增角色
+        </button>
+    </div>
+</script>
+
+<!-- 行工具栏 -->
+<script type="text/html" id="barDemo">
+    {% raw '{{# if(d.is_system == 1){ }}' %}
+        <span class="layui-badge layui-bg-gray">系统内置角色不可修改</span>
+    {% raw '{{# } else { }}' %}
+        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    {% raw '{{# } }}' %}
+    <a class="layui-btn layui-btn-xs layui-bg-blue" lay-event="assign">分配权限</a>
+</script>
+
+<!-- 新增/编辑表单 -->
+<script type="text/html" id="roleFormTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container" lay-filter="roleForm">
+            <input type="hidden" name="id">
+            <input type="hidden" name="action" id="formAction">
+            <input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">角色名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required lay-verify="required" placeholder="如：普通管理员" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">角色标识</label>
+                <div class="layui-input-block">
+                    <input type="text" name="code" required lay-verify="required" placeholder="如：common_admin" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <!-- 隐藏的真实提交按钮 -->
+            <button class="layui-hide" lay-submit lay-filter="saveRole" id="realSaveRoleBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveRoleBtn').click()">确定</button>
+        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+
+<!-- 分配权限树表单 -->
+<script type="text/html" id="permFormTpl">
+    <div class="admin-layer-content" style="padding: 15px;">
+        <div id="menuTree" class="demo-tree"></div>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" id="savePermBtn">确定</button>
+        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/management-cards.js') }}"></script>
+<script>
+layui.use(['laytpl','table', 'form', 'layer', 'jquery', 'tree'], function(){
+    var table = layui.table;
+    var form = layui.form;
+    var layer = layui.layer;
+    var $ = layui.jquery;
+    var tree = layui.tree;
+    var xsrf = '{{ handler.xsrf_token }}';
+
+    ManagementCards.render({
+        elem: '#roleTable',
+        url: '/api/role',
+        toolbar: '#toolbarDemo',
+        cols: [[
+            {field: 'id', title: 'ID', width: 80, sort: true},
+            {field: 'name', title: '角色名称', minWidth: 200},
+            {field: 'code', title: '角色标识', minWidth: 200},
+            {field: 'is_system', title: '类型', width: 100, templet: function(d){
+                return d.is_system === 1 ? '<span class="layui-badge layui-bg-blue">系统</span>' : '<span class="layui-badge-rim">自定义</span>';
+            }},
+            {field: 'create_at', title: '创建时间', width: 170, sort: true},
+            {fixed: 'right', title:'操作', toolbar: '#barDemo', width: 330}
+        ]]
+    });
+
+    ManagementCards.on('toolbar(roleTable)', function(obj){
+        if(obj.event === 'add'){
+            openForm('add', {});
+        }
+    });
+
+    ManagementCards.on('tool(roleTable)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+            layer.confirm('真的删除角色【' + data.name + '】么？', {icon: 3, title:'提示'}, function(index){
+                $.post('/api/role', {action: 'delete', id: data.id, _xsrf: xsrf}, function(res){
+                    if(res.code === 0){
+                        layer.close(index);
+                        layer.msg('删除成功', {icon: 1});
+                        ManagementCards.reload('roleTable');
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                }, 'json');
+            });
+        } else if(obj.event === 'edit'){
+            openForm('edit', data);
+        } else if(obj.event === 'assign'){
+            openPermissionForm(data);
+        }
+    });
+
+    function openForm(action, data) {
+        layer.open({
+            type: 1,
+            title: action === 'add' ? '新增角色' : '编辑角色',
+            area: ['550px', '350px'],
+            content: $('#roleFormTpl').html(),
+            success: function(layero, index){
+                $('#formAction').val(action);
+                if(action === 'edit'){
+                    form.val('roleForm', data);
+                }
+                form.on('submit(saveRole)', function(formData){
+                    $.post('/api/role', formData.field, function(res){
+                        if(res.code === 0){
+                            layer.close(index);
+                            layer.msg(res.msg, {icon: 1});
+                            ManagementCards.reload('roleTable');
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    }, 'json');
+                    return false;
+                });
+            }
+        });
+    }
+
+    function openPermissionForm(data) {
+        // 先获取整棵菜单树和该角色已有的权限
+        $.get('/api/menu?action=tree', function(menuRes){
+            $.post('/api/role', {action: 'get_permissions', id: data.id, _xsrf: xsrf}, function(permRes){
+                var roleMenus = permRes.data; // array of menu_ids
+                
+                layer.open({
+                    type: 1,
+                    title: '分配权限 (二级联动) - ' + data.name,
+                    area: ['550px', '520px'],
+                    content: $('#permFormTpl').html(),
+                    success: function(layero, index){
+                        // 渲染树，把menu的id转为tree的id，name转为title
+                        function formatTree(nodes) {
+                            var arr = [];
+                            $.each(nodes, function(i, item){
+                                var node = {
+                                    id: item.id,
+                                    title: item.name,
+                                    spread: true
+                                };
+                                if(item.children && item.children.length > 0){
+                                    node.children = formatTree(item.children);
+                                } else {
+                                    // 只有叶子节点才设置选中状态，防止父节点半选状态被layui自动处理导致子节点全选
+                                    if($.inArray(item.id, roleMenus) !== -1) {
+                                        node.checked = true;
+                                    }
+                                }
+                                arr.push(node);
+                            });
+                            return arr;
+                        }
+                        
+                        var treeData = formatTree(menuRes.data);
+                        
+                        tree.render({
+                            elem: '#menuTree',
+                            data: treeData,
+                            showCheckbox: true, // 开启复选框（二级联动核心）
+                            id: 'permTreeId'
+                        });
+
+                        $('#savePermBtn').on('click', function(){
+                            var checkedData = tree.getChecked('permTreeId');
+                            var ids = [];
+                            // 递归获取所有选中的id
+                            function getIds(nodes) {
+                                $.each(nodes, function(i, item){
+                                    ids.push(item.id);
+                                    if(item.children){
+                                        getIds(item.children);
+                                    }
+                                });
+                            }
+                            getIds(checkedData);
+                            
+                            $.post('/api/role', {
+                                action: 'assign_permissions',
+                                id: data.id,
+                                menu_ids: ids.join(','),
+                                _xsrf: xsrf
+                            }, function(res){
+                                if(res.code === 0){
+                                    layer.close(index);
+                                    layer.msg(res.msg, {icon: 1});
+                                } else {
+                                    layer.msg(res.msg, {icon: 2});
+                                }
+                            }, 'json');
+                        });
+                    }
+                });
+            }, 'json');
+        });
+    }
+});
+</script>
+{% end %}

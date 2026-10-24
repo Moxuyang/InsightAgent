@@ -1,0 +1,159 @@
+{% extends "../base.html" %}
+{% block style %}
+<style>
+    .skill-checkbox-area { padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 260px; overflow-y: auto; background: #f9fafb; }
+    .skill-checkbox-area .layui-form-checkbox { margin-right: 0; margin-bottom: 4px; display: block; padding: 6px 10px; border-radius: 6px; }
+    .skill-checkbox-area .layui-form-checkbox:hover { background: #f0f4ff; }
+    .skill-checkbox-area .skill-name { font-weight: 500; font-size: 13px; }
+    .skill-checkbox-area .skill-desc { font-size: 11px; color: #999; margin-left: 20px; display: block; line-height: 1.4; }
+    .skill-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+    .skill-tag-fc { background: #d4efdf; color: #1e8449; }
+    .skill-tag-api { background: #fdebd0; color: #b9770e; }
+    .skill-tag-md { background: #d6eaf8; color: #2471a3; }
+    .skill-empty-tip { color: #999; font-size: 13px; text-align: center; padding: 20px 0; }
+    .skill-empty-tip a { color: #5b8def; text-decoration: underline; }
+</style>
+{% end %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-robot"></i> 数字员工</h1>
+            <p class="page-subtitle">为智能体配置角色、模型和技能；新闻与舆情问答已接入共享检索流程</p>
+        </div>
+    </div>
+    <div class="employee-directory-toolbar"><input id="employeeSearch" class="form-input" aria-label="搜索数字员工" placeholder="搜索员工名称、角色或技能"><button class="btn btn-primary" id="addEmployee">＋ 添加数字员工</button></div>
+    <div id="employeeGrid" class="employee-grid" aria-live="polite"></div>
+    <div class="directory-pagination"><button class="btn btn-secondary btn-sm" id="employeePrev">上一页</button><span id="employeePage"></span><button class="btn btn-secondary btn-sm" id="employeeNext">下一页</button></div>
+</div>
+<script type="text/html" id="formTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container form-columns" lay-filter="dataForm">
+            <input type="hidden" name="id"><input type="hidden" name="action" id="formAction"><input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+            <div class="layui-form-item"><label class="layui-form-label">员工名称</label><div class="layui-input-block"><input type="text" name="name" required class="layui-input"></div></div>
+            <div class="layui-form-item"><label class="layui-form-label">状态</label><div class="layui-input-block"><select name="is_active"><option value="1">启用</option><option value="0">停用</option></select></div></div>
+            <div class="layui-form-item form-wide"><label class="layui-form-label">角色描述</label><div class="layui-input-block"><textarea name="role_desc" class="layui-textarea" rows="2" placeholder="如：数据分析专家"></textarea></div></div>
+            <div class="layui-form-item form-wide"><label class="layui-form-label">绑定模型</label><div class="layui-input-block"><select name="model_engine_id" id="modelSelect"><option value="">未绑定</option></select></div></div>
+            <div class="layui-form-item form-wide">
+                <label class="layui-form-label">绑定技能</label>
+                <div class="layui-input-block">
+                    <div class="skill-checkbox-area" id="skillCheckboxArea">
+                        <div class="skill-empty-tip">加载中...</div>
+                    </div>
+                    <div class="layui-form-mid layui-word-aux" style="margin-top:4px;">勾选要绑定的技能，可多选</div>
+                </div>
+            </div>
+            <button class="layui-hide" lay-submit lay-filter="saveData" id="realSaveBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveBtn').click()">保存</button>
+        <button class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['form','layer','jquery'],function(){
+    var form=layui.form,layer=layui.layer,$=layui.jquery,xsrf='{{ handler.xsrf_token }}';
+    var allSkills = []; // 缓存所有技能数据
+    var employeeRows=[], employeePage=1, employeeTotal=0;
+    function escapeText(value){return $('<span>').text(value == null ? '' : String(value)).html();}
+    function renderEmployees(){
+        var q=$('#employeeSearch').val().trim().toLowerCase(), grid=$('#employeeGrid').empty();
+        employeeRows.forEach(function(e){
+            var card=$('<article class="employee-profile"></article>');
+            card.html('<div class="employee-profile-top"><span class="person-avatar employee">AI</span><h2>'+escapeText(e.name)+'</h2><span class="profile-status '+(e.is_active==1?'':'paused')+'">'+(e.is_active==1?'已启用':'已停用')+'</span></div><p>'+escapeText(e.role_desc||'尚未设置角色，配置后让 AI 伙伴加入团队。')+'</p><div class="employee-meta"><span>模型 · '+escapeText(e.model_name||'未绑定模型')+'</span><span>技能 · '+escapeText(e.skill_names||'暂未绑定技能')+'</span></div><footer><button class="btn btn-secondary btn-sm" data-edit>配置员工</button><a class="btn btn-ghost btn-sm" href="/collaboration/list">去协作</a><button class="btn btn-danger btn-sm" data-delete>删除</button></footer>');
+            card.find('[data-edit]').on('click',function(){openForm('edit',e);});
+            card.find('[data-delete]').on('click',function(){layer.confirm('确定删除数字员工「'+escapeText(e.name)+'」？',function(i){$.post('/api/digital_employee',{action:'delete',id:e.id,_xsrf:xsrf},function(r){layer.close(i);if(r.code===0)loadEmployees();else layer.msg(r.msg);},'json').fail(function(){layer.msg('删除失败，请稍后重试');});});});
+            grid.append(card);
+        });
+        if(!grid.children().length)grid.append($('<p class="messenger-status"></p>').text(q?'没有找到匹配的员工':'团队还没有数字员工，点击右上角添加你的第一位 AI 伙伴。'));
+        $('#employeePage').text(employeePage+' / '+Math.max(1,Math.ceil(employeeTotal/24)));
+        $('#employeePrev').prop('disabled',employeePage<=1);$('#employeeNext').prop('disabled',employeePage*24>=employeeTotal);
+    }
+    var listRequest=0;
+    function loadEmployees(){
+        var currentRequest=++listRequest;
+        $.get('/api/digital_employee',{page:employeePage,limit:24,keyword:$('#employeeSearch').val().trim()},function(r){if(currentRequest!==listRequest)return;if(r.code!==0)return layer.msg(r.msg);employeeRows=r.data;employeeTotal=r.count;if(!employeeRows.length&&employeePage>1){employeePage--;return loadEmployees();}renderEmployees();},'json').fail(function(){$('#employeeGrid').html('<p class="interaction-error">员工列表加载失败，请刷新重试。</p>');});
+    }
+    var searchTimer;$('#employeeSearch').on('input',function(){clearTimeout(searchTimer);searchTimer=setTimeout(function(){employeePage=1;loadEmployees();},250);});$('#addEmployee').on('click',function(){openForm('add',{});});
+    $('#employeePrev').on('click',function(){employeePage--;loadEmployees();});$('#employeeNext').on('click',function(){employeePage++;loadEmployees();});
+    loadEmployees();
+
+    // 渲染技能复选框
+    function renderSkillCheckboxes(selectedIds){
+        var area = $('#skillCheckboxArea');
+        area.empty();
+        if(!allSkills.length){
+            area.html('<div class="skill-empty-tip">暂无可用的技能<br>请先在<a href="/skill/list" target="_blank">技能管理</a>中添加技能</div>');
+            form.render('checkbox');
+            return;
+        }
+        var tagText = {function_call:'API', 'skill.md':'提示词'};
+        $.each(allSkills,function(i,sk){
+            var label = $('<label class="skill-choice"></label>');
+            $('<input type="checkbox" name="skill_ids" lay-ignore>').val(sk.id)
+                .prop('checked', selectedIds.indexOf(String(sk.id)) >= 0).appendTo(label);
+            var copy = $('<span class="skill-choice-copy"></span>').appendTo(label);
+            $('<strong></strong>').text(sk.name).appendTo(copy);
+            $('<small></small>').text(sk.description || '暂无描述').appendTo(copy);
+            $('<span class="skill-choice-type"></span>').text(tagText[sk.skill_type] || '工具').appendTo(label);
+            area.append(label);
+        });
+        form.render('checkbox');
+    }
+
+    function openForm(act,data){
+        layer.open({type:1,title:act==='add'?'新增员工':'编辑员工',area:['680px','680px'],content:$('#formTpl').html(),success:function(layero,idx){
+            $('#formAction').val(act);
+            form.val('dataForm',{id:data.id||'',name:data.name||'',role_desc:data.role_desc||'',is_active:data.is_active==null?1:data.is_active});
+            // 加载模型列表
+            $.get('/api/model_engine',function(res){
+                var sel=$('#modelSelect');sel.empty().append('<option value="">未绑定</option>');
+                if(res.code===0)$.each(res.data,function(i,item){sel.append('<option value="'+item.id+'">'+item.name+'</option>');});
+                form.render('select');
+                if(act==='edit'){
+                    form.val('dataForm',{name:data.name,role_desc:data.role_desc,model_engine_id:data.model_engine_id,is_active:data.is_active});
+                }
+            },'json');
+            // 加载技能列表并渲染复选框
+            $.get('/api/digital_employee?action=skills',function(res){
+                if(res.code===0) allSkills = res.data||[];
+                var selectedIds = [];
+                if(act==='edit' && data.skill_ids){
+                    selectedIds = String(data.skill_ids).split(',').map(function(s){return s.trim();}).filter(Boolean);
+                }
+                renderSkillCheckboxes(selectedIds);
+            },'json');
+
+            // 保存提交
+            form.on('submit(saveData)',function(fd){
+                // 收集选中的技能ID
+                var checkedSkills = [];
+                $('#skillCheckboxArea input[name="skill_ids"]:checked').each(function(){
+                    checkedSkills.push($(this).val());
+                });
+                var postData = {
+                    action: fd.field.action,
+                    id: fd.field.id,
+                    name: fd.field.name,
+                    role_desc: fd.field.role_desc,
+                    model_engine_id: fd.field.model_engine_id,
+                    skill_ids: checkedSkills.join(','),
+                    is_active: fd.field.is_active,
+                    _xsrf: fd.field._xsrf
+                };
+                $.post('/api/digital_employee',postData,function(r){
+                    if(r.code===0){layer.close(idx);layer.msg(r.msg,{icon:1});loadEmployees();}
+                    else layer.msg(r.msg,{icon:2});
+                },'json');
+                return false;
+            });
+        }});
+    }
+});
+</script>
+{% end %}

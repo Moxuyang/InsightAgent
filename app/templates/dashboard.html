@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block style %}
+<style>
+    html, body { overflow-y: auto; }
+    .admin-page { min-height: 100vh; padding-bottom: var(--space-16); }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-item {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5) var(--space-6);
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        transition: all var(--duration-200) var(--ease-out);
+    }
+    .stat-item:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+    }
+    .stat-icon {
+        width: 48px; height: 48px;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--text-xl);
+        flex-shrink: 0;
+    }
+    .stat-icon.s1 { background: var(--accent-subtle); color: var(--accent-text); }
+    .stat-icon.s2 { background: var(--info-bg); color: var(--info); }
+    .stat-icon.s3 { background: var(--success-bg); color: var(--success); }
+    .stat-icon.s4 { background: var(--warning-bg); color: var(--warning); }
+    .stat-value {
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-bold);
+        color: var(--ink-heavy);
+        line-height: 1.2;
+    }
+    .stat-label {
+        font-size: var(--text-xs);
+        color: var(--ink-muted);
+        margin-top: var(--space-1);
+    }
+
+    .welcome-card {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-xl);
+        padding: var(--space-8) var(--space-6);
+        text-align: center;
+        margin-bottom: var(--space-6);
+    }
+    .welcome-card h2 {
+        font-size: var(--text-xl);
+        font-weight: var(--weight-bold);
+        color: var(--ink-heavy);
+        margin-bottom: var(--space-3);
+    }
+    .welcome-card p {
+        font-size: var(--text-sm);
+        color: var(--ink-muted);
+        line-height: var(--leading-relaxed);
+        max-width: 560px;
+        margin: 0 auto var(--space-6);
+    }
+
+    /* Quick entry grid */
+    .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) { .quick-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 500px) { .quick-grid { grid-template-columns: 1fr; } }
+
+    .quick-card {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--duration-200) var(--ease-out);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .quick-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+        border-color: var(--accent);
+    }
+    .quick-card .qc-icon {
+        width: 44px; height: 44px;
+        border-radius: var(--radius);
+        background: var(--accent-subtle);
+        color: var(--accent-text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin: 0 auto var(--space-3);
+    }
+    .quick-card .qc-label {
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        color: var(--ink);
+        margin-bottom: var(--space-1);
+    }
+    .quick-card .qc-desc {
+        font-size: var(--text-xs);
+        color: var(--ink-faint);
+    }
+
+    .feature-pills {
+        display: flex;
+        justify-content: center;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+    }
+    .feature-pill {
+        padding: var(--space-2) var(--space-4);
+        border-radius: var(--radius-full);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-medium);
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--ink-muted);
+        transition: all var(--duration-150) var(--ease-out);
+    }
+    .feature-pill:hover {
+        border-color: var(--accent);
+        color: var(--accent-text);
+        background: var(--accent-subtle);
+    }
+</style>
+{% end %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title">工作台</h1>
+            <p class="page-subtitle">从数据采集到智能决策，在一个工作空间完成</p>
+        </div>
+    </div>
+
+    <section class="workspace-welcome">
+        <div><span class="eyebrow">INSIGHT AGENT / 工作空间</span><h2>让数据成为下一步行动的依据</h2><p>采集信息、沉淀数据、提出问题，开启你的智能工作流。</p></div>
+        <div class="welcome-actions"><a href="/spy" class="btn btn-primary"><i class="fas fa-satellite-dish"></i> 开始采集</a><a href="/user_dashboard" class="btn btn-secondary">进入 AI 问数 <span aria-hidden="true">→</span></a></div>
+    </section>
+    <!-- ===== 数据概览卡片 ===== -->
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-icon s1"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="stat-value">{{ stats.get('user_count', 0) }}</div>
+                <div class="stat-label">系统用户</div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon s2"><i class="fas fa-satellite-dish"></i></div>
+            <div>
+                <div class="stat-value">{{ stats.get('source_count', 0) }}</div>
+                <div class="stat-label">采集源</div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon s3"><i class="fas fa-database"></i></div>
+            <div>
+                <div class="stat-value">{{ stats.get('data_count', 0) }}</div>
+                <div class="stat-label">数据条目</div>
+            </div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-icon s4"><i class="fas fa-microchip"></i></div>
+            <div>
+                <div class="stat-value">{{ stats.get('model_count', 0) }}</div>
+                <div class="stat-label">模型引擎</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 快捷入口 ===== -->
+    <div class="section-heading"><h2>常用功能</h2><span>按工作流程快速进入</span></div>
+    <div class="quick-grid">
+        <a href="/spy" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-satellite-dish"></i></div>
+            <div class="qc-label">智能瞭望</div>
+            <div class="qc-desc">数据采集与爬虫管理</div>
+        </a>
+        <a href="/data_warehouse/list" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-archive"></i></div>
+            <div class="qc-label">资料库</div>
+            <div class="qc-desc">采集数据浏览与检索</div>
+        </a>
+        <a href="/sentiment" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-chart-bar"></i></div>
+            <div class="qc-label">舆情洞察</div>
+            <div class="qc-desc">舆情分析与预警</div>
+        </a>
+        <a href="/data_screen" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-chart-pie"></i></div>
+            <div class="qc-label">数智大屏</div>
+            <div class="qc-desc">可视化数据看板</div>
+        </a>
+        <a href="/user_dashboard" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-robot"></i></div>
+            <div class="qc-label">AI 问数</div>
+            <div class="qc-desc">智能对话与数据分析</div>
+        </a>
+        <a href="/model_engine/list" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-microchip"></i></div>
+            <div class="qc-label">模型引擎</div>
+            <div class="qc-desc">AI 模型配置与测试</div>
+        </a>
+        <a href="/collaboration/list" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-comments"></i></div>
+            <div class="qc-label">协作消息</div>
+            <div class="qc-desc">群组聊天与数字员工</div>
+        </a>
+        <a href="/user/list" class="quick-card">
+            <div class="qc-icon"><i class="fas fa-cog"></i></div>
+            <div class="qc-label">成员管理</div>
+            <div class="qc-desc">系统用户与权限</div>
+        </a>
+    </div>
+
+
+</div>
+{% end %}

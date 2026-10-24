@@ -1,0 +1,36 @@
+/database
+/venv
+/.venv/
+/.frontend-review/
+/uploads/
+/exports/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+
+# Local development tools and private runtime data
+/.idea/
+/.codebuddy/
+/.impeccable/
+/.agents/
+/.codex/
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.log
+*.pem
+*.key
+# Configuration screenshots may contain private API settings
+/docs/screenshots/*config*.png
+/docs/screenshots/weather-api-fields.png
+
+# Release only the reviewed, unbranded screenshot; keep originals locally.
+/docs/screenshots/
+!/docs/screenshots/
+/docs/screenshots/*
+!/docs/screenshots/ai-chat.png
+# Extracted runtime resources are already included.
+/app/static/dist/*.zip

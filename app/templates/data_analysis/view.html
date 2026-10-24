@@ -1,0 +1,81 @@
+{% extends "../base.html" %}
+{% block style %}
+<style>
+    .analysis-page { padding: var(--space-6); max-width: 1200px; margin: 0 auto; }
+    .analysis-header { margin-bottom: var(--space-6); }
+    .analysis-header h1 { font-size: var(--text-xl); margin: 0 0 var(--space-2) 0; color: var(--ink-heavy); }
+    .analysis-header p { color: var(--ink-muted); margin: 0; }
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+    .metric-card {
+        background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg);
+        padding: var(--space-5); box-shadow: var(--shadow-xs);
+    }
+    .metric-card h3 { margin: 0 0 var(--space-3) 0; font-size: var(--text-sm); color: var(--ink-muted); font-weight: var(--weight-medium); }
+    .metric-card .value { font-size: var(--text-2xl); font-weight: var(--weight-bold); color: var(--accent-text); }
+    .metric-card .sub { font-size: var(--text-xs); color: var(--ink-faint); margin-top: var(--space-1); }
+    .analysis-section {
+        background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg);
+        padding: var(--space-5); margin-bottom: var(--space-4); box-shadow: var(--shadow-xs);
+    }
+    .analysis-section h3 { margin: 0 0 var(--space-3) 0; font-size: var(--text-base); color: var(--ink-heavy); font-weight: var(--weight-semibold); }
+    .analysis-section pre {
+        background: var(--bg-subtle); border-radius: var(--radius); padding: var(--space-4);
+        font-size: var(--text-sm); line-height: 1.8; white-space: pre-wrap;
+        font-family: var(--font-mono); color: var(--ink);
+    }
+    .btn-bar { margin-bottom: var(--space-4); }
+    .btn-bar .layui-btn { border-radius: var(--radius); }
+</style>
+{% end %}
+{% block body %}
+<div class="analysis-page">
+    <div class="analysis-header">
+        <h1><i class="layui-icon layui-icon-chart"></i> 项目数据分析</h1>
+        <p>基于项目业务数据（business_data表）的自动分析与趋势洞察</p>
+    </div>
+
+    <div class="btn-bar">
+        <button class="layui-btn layui-btn-normal" onclick="loadOverview()"><i class="layui-icon layui-icon-refresh"></i> 最新概览</button>
+        <button class="layui-btn layui-btn-primary" onclick="loadMetrics()"><i class="layui-icon layui-icon-list"></i> 查看所有指标</button>
+    </div>
+
+    <div id="contentArea">
+        <div style="text-align:center;padding:60px;color:var(--ink-muted);">点击上方按钮开始分析</div>
+    </div>
+</div>
+{% end %}
+{% block script %}
+<script>
+layui.use(['jquery'], function(){
+    var $ = layui.jquery;
+
+    window.loadOverview = function(){
+        $.get('/api/data_analysis', {action:'overview'}, function(r){
+            if(r.success){
+                $('#contentArea').html('<div class="analysis-section"><h3>数据概览</h3><pre>'+r.analysis+'</pre></div>');
+            } else {
+                $('#contentArea').html('<div style="color:red;">'+r.error+'</div>');
+            }
+        });
+    };
+
+    window.loadMetrics = function(){
+        $.get('/api/data_analysis', {action:'metrics'}, function(r){
+            if(r.success){
+                var html = '';
+                $.each(r.metrics, function(cat, items){
+                    html += '<div class="analysis-section">';
+                    html += '<h3>'+cat+'</h3>';
+                    html += '<ul>';
+                    $.each(items, function(i, m){
+                        html += '<li>'+m.name+'（'+m.records+'条记录）</li>';
+                    });
+                    html += '</ul></div>';
+                });
+                $('#contentArea').html(html);
+            }
+        });
+    };
+});
+</script>
+{% end %}

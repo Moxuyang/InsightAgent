@@ -1,0 +1,895 @@
+{% extends "../base.html" %}
+
+{% block style %}
+<style>
+    .container{ max-width: none; padding: 0; }
+    .content-shell{ max-width: 1180px; margin: 0 auto; }
+
+    .layui-card{ background: transparent; box-shadow: none; }
+
+    .hero{
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap:16px;
+        padding: var(--space-5) var(--space-6);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow-xs);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: var(--space-4);
+        animation: fadeInUp .6s ease-out;
+    }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .hero::before{
+        content:"";
+        position:absolute;
+        top:0;left:0;right:0;
+        height:3px;
+        background: var(--accent);
+    }
+    .hero > *{ position: relative; }
+    .hero-eyebrow{
+        letter-spacing: .12em;
+        font-size: 11px;
+        color: var(--ink-muted);
+        text-transform: uppercase;
+    }
+    .hero-title{
+        margin-top:6px;
+        font-size:22px;
+        font-weight:800;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        color: var(--ink-heavy);
+    }
+    .hero-title i{ color: var(--accent-text); }
+    .badge-core{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:6px 12px;
+        border-radius:999px;
+        border:1px solid var(--accent);
+        background:var(--accent-subtle);
+        color:var(--accent-text);
+        font-size:12px;
+        font-weight:600;
+    }
+    .hero-subtitle{
+        margin-top:7px;
+        font-size:13px;
+        color:var(--ink-muted);
+        line-height:1.55;
+    }
+    .hero-meta{
+        margin-top:10px;
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        color:var(--ink-muted);
+        font-size:12px;
+    }
+    .pill{
+        display:inline-flex;
+        align-items:center;
+        gap:7px;
+        padding:7px 12px;
+        border-radius:999px;
+        border:1px solid var(--border-light);
+        background:var(--bg-subtle);
+        color:var(--ink-muted);
+        font-weight:500;
+    }
+    .pill i{ color:var(--accent-text); }
+
+    .hero-actions{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+    }
+    .search-pill{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        height:40px;
+        padding:0 14px;
+        border-radius:999px;
+        border:1px solid var(--border);
+        background:var(--bg-subtle);
+    }
+    .search-pill i{ color:var(--ink-muted); }
+    .search-pill input{
+        width:220px;
+        max-width:48vw;
+        background:transparent;
+        border:none;
+        outline:none;
+        color:var(--ink);
+        font-size:13px;
+    }
+    .btn-neo{
+        height:40px;
+        padding:0 16px;
+        border-radius:999px;
+        border:none;
+        color:#fff;
+        font-weight:700;
+        letter-spacing:.2px;
+        background: var(--accent);
+        display:inline-flex;
+        align-items:center;
+        gap:10px;
+        transition: all var(--duration-200) var(--ease-out);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 16px var(--accent-glow);
+        cursor: pointer;
+    }
+    .btn-neo::after{ content:''; position:absolute; top:50%; left:50%; width:0; height:0; border-radius:50%; background:rgba(255,255,255,.2); transform:translate(-50%,-50%); transition:width .5s,height .5s; }
+    .btn-neo:active::after{ width:300px; height:300px; }
+    .btn-neo:hover{ box-shadow: 0 6px 24px var(--accent-glow); transform: translateY(-1px); background: var(--accent-hover); }
+
+    .deck{
+        margin-top:14px;
+        border:1px solid var(--border-light);
+        border-radius:var(--radius-lg);
+        background:var(--surface);
+        box-shadow:var(--shadow-xs);
+        overflow:hidden;
+        animation: fadeInUp .5s ease-out;
+    }
+    .deck-head{
+        padding:14px 18px 12px;
+        border-bottom:1px solid var(--border-light);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+    }
+    .deck-head-left{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        color:var(--ink);
+        font-size:13px;
+        font-weight:600;
+    }
+    .deck-head-left .dot{
+        width:8px;
+        height:8px;
+        border-radius:99px;
+        background:var(--accent);
+        box-shadow:0 0 12px var(--accent-glow);
+    }
+    .deck-head-right{
+        color:var(--ink-muted);
+        font-size:12px;
+        padding:6px 12px;
+        border:1px solid var(--border-light);
+        border-radius:999px;
+        background:var(--bg-subtle);
+    }
+    .deck-body{ padding:16px 18px 18px; }
+
+    .model-grid{
+        display:grid;
+        grid-template-columns: repeat(3, minmax(0,1fr));
+        gap:14px;
+    }
+    @media (max-width:1200px){ .model-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width:680px){ .model-grid{ grid-template-columns: repeat(1, minmax(0,1fr)); } }
+
+    .engine-card{
+        position:relative;
+        border-radius:var(--radius-lg);
+        border:1px solid var(--border-light);
+        background:var(--surface);
+        box-shadow:var(--shadow-xs);
+        overflow:hidden;
+        transition: transform .18s ease, box-shadow .18s ease;
+        min-height:250px;
+        padding:18px 18px 16px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        animation: slideInLeft .4s ease-out;
+    }
+    @keyframes slideInLeft { from { opacity:0; transform:translateX(-20px); } to { opacity:1; transform:translateX(0); } }
+    .engine-card:hover{
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--accent);
+    }
+    .engine-card.is-default{
+        border-color: var(--accent);
+        box-shadow: var(--shadow-xs), 0 0 0 1px var(--accent-subtle) inset;
+    }
+    .engine-card.is-default::before{
+        content:"";
+        position:absolute;
+        top:0;left:0;right:0;
+        height:3px;
+        background: var(--accent);
+        opacity:1;
+    }
+    .engine-card > *{ position:relative; z-index:1; }
+
+    .default-ribbon{
+        position:absolute;
+        top:12px;
+        left:12px;
+        z-index:2;
+        display:inline-flex;
+        align-items:center;
+        gap:8px;
+        padding:6px 10px;
+        border-radius:999px;
+        border:1px solid var(--accent);
+        background:var(--accent-subtle);
+        color:var(--accent-text);
+        font-weight:700;
+        font-size:11px;
+    }
+    .default-ribbon .spark{
+        width:7px;
+        height:7px;
+        border-radius:99px;
+        background:var(--accent);
+        box-shadow:0 0 10px var(--accent-glow);
+    }
+
+    .engine-top{ position:relative; padding-top:26px; }
+    .engine-name{
+        font-size:17px;
+        font-weight:800;
+        color:var(--ink-heavy);
+        letter-spacing:.1px;
+        line-height:1.2;
+        display:flex;
+        align-items:center;
+        gap:10px;
+    }
+    .engine-name i{ color:var(--accent-text); }
+    .engine-chip{
+        margin-top:8px;
+        display:flex;
+        flex-wrap:wrap;
+        gap:8px;
+    }
+    .chip{
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:6px 10px;
+        border-radius:999px;
+        border:1px solid var(--border-light);
+        background:var(--bg-subtle);
+        color:var(--ink);
+        font-size:12px;
+        max-width:100%;
+    }
+    .chip .mono{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+
+    .engine-info{
+        margin-top:4px;
+        display:flex;
+        flex-direction:column;
+        gap:10px;
+        color:var(--ink-muted);
+        font-size:12px;
+    }
+    .engine-row{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        padding:10px 12px;
+        border-radius:var(--radius-sm);
+        border:1px solid var(--border-light);
+        background:var(--bg-subtle);
+        overflow:hidden;
+    }
+    .engine-row i{ color:var(--accent-text); width:16px; }
+    .engine-row span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink); }
+
+    .engine-meter{
+        margin-top:auto;
+        padding-top:12px;
+        border-top:1px dashed var(--border-light);
+    }
+    .meter-head{
+        display:flex;
+        align-items:flex-end;
+        justify-content:space-between;
+        gap:10px;
+        margin-bottom:8px;
+        color:var(--ink-muted);
+        font-size:12px;
+    }
+    .meter-head strong{
+        color:var(--accent-text);
+        font-size:15px;
+        font-weight:800;
+    }
+    .meter-bar{
+        height:8px;
+        border-radius:999px;
+        border:1px solid var(--border-light);
+        background:var(--bg-subtle);
+        overflow:hidden;
+        position:relative;
+    }
+    .meter-fill{
+        height:100%;
+        border-radius:999px;
+        background:var(--accent);
+        box-shadow:0 0 10px var(--accent-glow);
+        position:relative;
+        overflow:hidden;
+    }
+    .meter-fill::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        background:linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.20) 25%, rgba(255,255,255,0) 55%);
+        transform:translateX(-60%);
+        animation:sheen 1.7s ease-in-out infinite;
+        opacity:.55;
+    }
+    @keyframes sheen{ 0%{ transform:translateX(-60%); } 55%{ transform:translateX(140%); } 100%{ transform:translateX(140%); } }
+
+    .engine-actions{
+        margin-top:12px;
+        padding-top:12px;
+        border-top:1px dashed var(--border-light);
+        display:flex;
+        flex-wrap:wrap;
+        align-items:center;
+        justify-content:flex-end;
+        gap:10px;
+    }
+    .icon-btn{
+        width:36px;
+        height:36px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:var(--radius-sm);
+        border:1px solid var(--border-light);
+        background:var(--surface);
+        color:var(--ink-muted);
+        transition: all .14s ease;
+        cursor:pointer;
+    }
+    .icon-btn:hover{ transform:translateY(-1px); border-color:var(--accent); color:var(--accent-text); background:var(--accent-subtle); }
+    .icon-btn.danger:hover{ border-color:var(--error); color:var(--error); background:var(--error-bg); }
+    .primary-btn{
+        height:34px;
+        padding:0 14px;
+        border-radius:var(--radius-sm);
+        border:1px solid var(--accent);
+        background:var(--accent-subtle);
+        color:var(--accent-text);
+        font-weight:700;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        cursor:pointer;
+        transition: all .14s ease;
+    }
+    .primary-btn:hover{ background:var(--accent-muted); border-color:var(--accent-hover); }
+    .default-btn{ border-color:var(--accent); background:var(--accent-subtle); color:var(--accent-text); }
+    .default-btn:hover{ background:var(--accent-muted); }
+
+    .chat-container{
+        height:100%;
+        box-sizing:border-box;
+        background:linear-gradient(180deg, var(--bg-subtle) 0%, var(--surface) 100%);
+        padding:14px;
+    }
+    .chat-box{
+        height:322px;
+        overflow-y:auto;
+        background:var(--bg-subtle);
+        padding:14px;
+        border-radius:var(--radius-lg);
+        border:1px solid var(--border-light);
+    }
+    .chat-msg{ margin:12px 0; display:flex; flex-direction:column; gap:6px; }
+    .chat-msg.user{ align-items:flex-end; }
+    .chat-msg.ai{ align-items:flex-start; }
+    .chat-bubble{
+        max-width:88%;
+        padding:12px 14px;
+        border-radius:var(--radius-sm);
+        font-size:13px;
+        line-height:1.65;
+        word-wrap:break-word;
+        border:1px solid var(--border-light);
+        background:var(--surface);
+        color:var(--ink);
+    }
+    .chat-msg.user .chat-bubble{
+        border:none;
+        background:var(--accent);
+        color:#fff;
+        font-weight:600;
+        box-shadow:0 6px 16px var(--accent-glow);
+        border-bottom-right-radius:6px;
+    }
+    .chat-msg.ai .chat-bubble{ border-bottom-left-radius:6px; }
+    .chat-input-row{ margin-top:10px; display:flex; gap:10px; align-items:center; }
+    .chat-input{
+        height:42px;
+        border-radius:var(--radius);
+        background:var(--bg-subtle);
+        border:1px solid var(--border);
+        color:var(--ink);
+    }
+    .chat-send{
+        height:42px;
+        border-radius:var(--radius);
+        border:none;
+        background:var(--accent);
+        color:#fff;
+        font-weight:700;
+        display:inline-flex;
+        align-items:center;
+        gap:9px;
+    }
+    .chat-send:hover{ background:var(--accent-hover); }
+    .cursor-blink{
+        display:inline-block;
+        width:7px;
+        height:16px;
+        background:var(--accent);
+        margin-left:4px;
+        vertical-align:middle;
+        border-radius:3px;
+        animation:blink 1s step-end infinite;
+    }
+    @keyframes blink{ 50%{ opacity:0; } }
+
+    .layui-laypage a, .layui-laypage span{
+        background:var(--surface);
+        color:var(--ink-muted);
+        border-color:var(--border);
+        border-radius:var(--radius-sm);
+    }
+    .layui-laypage .layui-laypage-curr .layui-laypage-em{
+        background:var(--accent);
+    }
+</style>
+{% end %}
+
+{% block body %}
+<div class="page-container">
+    <div class="content-shell">
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <div class="hero">
+                    <div>
+                        <div class="hero-eyebrow">MODEL ENGINE CONTROL DECK</div>
+                        <div class="hero-title">
+                            <i class="fas fa-microchip"></i>
+                            模型引擎服务管理
+                            <span class="badge-core"><i class="fas fa-bolt"></i> 在线配置</span>
+                        </div>
+                        <div class="hero-subtitle">可视化配置 OpenAI 范式模型服务，支持默认模型切换、Token 消耗统计与流式对话测试。</div>
+                        <div class="hero-meta" id="heroMeta">
+                            <span class="pill"><i class="fas fa-layer-group"></i> 当前页 <span id="metaCount">0</span> 个服务</span>
+                            <span class="pill"><i class="fas fa-key"></i> Key 末尾脱敏展示</span>
+                            <span class="pill"><i class="fas fa-stream"></i> SSE 流式测试</span>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <div class="search-pill">
+                            <i class="fas fa-search"></i>
+                            <input id="searchInput" type="text" placeholder="搜索：别名 / 模型名 / Base URL">
+                        </div>
+                        <button class="btn-neo" onclick="openForm('add')">
+                            <i class="layui-icon layui-icon-add-1"></i>
+                            新增模型服务
+                        </button>
+                    </div>
+                </div>
+
+                <div class="deck">
+                    <div class="deck-head">
+                        <div class="deck-head-left">
+                            <span class="dot"></span>
+                            <span>橱窗 · 引擎节点</span>
+                        </div>
+                        <div class="deck-head-right" id="deckStatus">READY</div>
+                    </div>
+                    <div class="deck-body">
+                        <div class="model-grid" id="modelWindow"></div>
+                    </div>
+                </div>
+
+                <!-- 分页容器 -->
+                <div id="pagination" style="text-align: center; margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 隐藏的表单弹窗模板 -->
+<script type="text/html" id="modelFormTpl">
+    <div class="admin-layer-content">
+    <div class="admin-form-container">
+        <form class="layui-form" lay-filter="modelForm">
+            <input type="hidden" name="action" id="formAction">
+            <input type="hidden" name="id">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">服务别名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required lay-verify="required" placeholder="如：DeepSeek V3" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">模型名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="model_name" required lay-verify="required" placeholder="如：deepseek-v3" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">API Key</label>
+                <div class="layui-input-block">
+                    <input type="text" name="api_key" required lay-verify="required" placeholder="sk-..." autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">Base URL</label>
+                <div class="layui-input-block">
+                    <input type="text" name="base_url" required lay-verify="required" placeholder="如：https://aigc-api.aitoolcore.com/api/v1" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <button lay-submit lay-filter="submitModelForm" id="hiddenSubmitBtn" class="layui-hide"></button>
+        </form>
+    </div>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="$('#hiddenSubmitBtn').click()">保存配置</button>
+        <button class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll()">取消</button>
+    </div>
+</script>
+
+<!-- 隐藏的测试弹窗模板 -->
+<script type="text/html" id="testFormTpl">
+    <div class="chat-container">
+        <div class="chat-box" id="chatBox">
+            <div class="chat-msg ai">
+                <div class="chat-bubble">您好！我是当前配置的 AI 模型，请向我发送消息进行通信测试。</div>
+            </div>
+        </div>
+        <div class="chat-input-row">
+            <input type="text" id="testMessage" class="layui-input chat-input" placeholder="输入测试消息，如：你好" onkeypress="if(event.keyCode==13) sendTestMsg()">
+            <button class="layui-btn chat-send" onclick="sendTestMsg()"><i class="fas fa-paper-plane"></i> 发送</button>
+        </div>
+    </div>
+</script>
+
+{% end %}
+
+{% block script %}
+<script>
+    var $ = layui.$;
+    var layer = layui.layer;
+    var form = layui.form;
+
+    var xsrf = '{{ handler.xsrf_token }}';
+    var currentPage = 1;
+    var currentLimit = 6;
+    var currentTestData = null;
+    var currentDataCache = [];
+
+    $(function(){
+        loadModels();
+        $('#searchInput').on('input', function(){
+            applyFilterRender();
+        });
+
+        $('#modelWindow').on('click', '[data-action]', function(){
+            var action = $(this).data('action');
+            var id = parseInt($(this).data('id'), 10) || 0;
+            if (!action || !id) return;
+
+            if (action === 'test') {
+                var name = $(this).data('name') || '';
+                openTest(id, name);
+                return;
+            }
+            if (action === 'default') {
+                setDefault(id);
+                return;
+            }
+            if (action === 'edit') {
+                var item = getItemById(id);
+                if (item) openForm('edit', item);
+                return;
+            }
+            if (action === 'delete') {
+                deleteModel(id);
+                return;
+            }
+        });
+    });
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function setDeckStatus(text) {
+        $('#deckStatus').text(text);
+    }
+
+    function getItemById(id) {
+        var list = currentDataCache || [];
+        for (var i = 0; i < list.length; i++) {
+            if (Number(list[i].id) === Number(id)) return list[i];
+        }
+        return null;
+    }
+
+    // 加载模型数据并渲染橱窗
+    function loadModels() {
+        setDeckStatus('SYNCING...');
+        $('#modelWindow').html('<div style="grid-column:1/-1; text-align:center; padding: 46px 10px; color: var(--ink-faint); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;">正在同步引擎节点…</div>');
+        $.get('/api/model_engine', { page: currentPage, limit: currentLimit }, function(res){
+            if(res.code === 0) {
+                currentDataCache = res.data || [];
+                $('#metaCount').text(currentDataCache.length);
+                applyFilterRender();
+                setDeckStatus('READY · ' + new Date().toLocaleTimeString());
+                // 渲染分页
+                layui.laypage.render({
+                    elem: 'pagination',
+                    count: res.count,
+                    limit: currentLimit,
+                    curr: currentPage,
+                    layout: ['count', 'prev', 'page', 'next'],
+                    jump: function(obj, first){
+                        if(!first){
+                            currentPage = obj.curr;
+                            loadModels();
+                        }
+                    }
+                });
+            }
+        }, 'json');
+    }
+
+    function applyFilterRender() {
+        var kw = ($('#searchInput').val() || '').trim().toLowerCase();
+        var list = currentDataCache || [];
+        if (kw) {
+            list = list.filter(function(item){
+                var n = String(item.name || '').toLowerCase();
+                var mn = String(item.model_name || '').toLowerCase();
+                var bu = String(item.base_url || '').toLowerCase();
+                return n.indexOf(kw) >= 0 || mn.indexOf(kw) >= 0 || bu.indexOf(kw) >= 0;
+            });
+        }
+        var total = (currentDataCache || []).length;
+        setDeckStatus('READY · ' + new Date().toLocaleTimeString() + ' · 显示 ' + list.length + '/' + total);
+        renderWindow(list, kw);
+    }
+
+    // 渲染卡片 HTML
+    function renderWindow(dataList, kw) {
+        var html = '';
+        if(dataList.length === 0) {
+            if (kw) {
+                html = '<div style="grid-column:1/-1; text-align:center; padding: 46px 10px; color: var(--ink-faint);">未找到匹配的模型服务，请调整关键词或清空搜索。</div>';
+            } else {
+                html = '<div style="grid-column:1/-1; text-align:center; padding: 46px 10px; color: var(--ink-faint);">暂无模型服务，请点击右上角「新增模型服务」。</div>';
+            }
+        } else {
+            $.each(dataList, function(i, item){
+                var isDefClass = item.is_default === 1 ? 'is-default' : '';
+                var tokens = Number(item.total_tokens || 0);
+                var tokenPercent = (tokens % 10000) / 10000 * 100;
+                if(tokenPercent < 3 && tokens > 0) tokenPercent = 3;
+                if(tokenPercent > 100) tokenPercent = 100;
+
+                var safeName = escapeHtml(item.name || '');
+                var safeModelName = escapeHtml(item.model_name || '');
+                var safeBaseUrl = escapeHtml(item.base_url || '');
+                var keyTail = String(item.api_key || '');
+                keyTail = keyTail.length >= 6 ? keyTail.slice(-6) : keyTail;
+                keyTail = escapeHtml(keyTail);
+                var safeNameAttr = escapeHtml(item.name || '');
+
+                html += '<div class="engine-card ' + isDefClass + '">';
+                if (item.is_default === 1) {
+                    html += '  <div class="default-ribbon"><span class="spark"></span> 系统默认</div>';
+                }
+                html += '  <div class="engine-top">';
+                html += '    <div class="engine-name"><i class="fas fa-cube"></i> ' + safeName + '</div>';
+                html += '    <div class="engine-chip">';
+                html += '      <span class="chip"><i class="fas fa-tag"></i> <span class="mono">' + safeModelName + '</span></span>';
+                html += '    </div>';
+                html += '  </div>';
+                html += '  <div class="engine-info">';
+                html += '    <div class="engine-row" title="' + safeBaseUrl + '"><i class="fas fa-link"></i> <span>' + safeBaseUrl + '</span></div>';
+                html += '    <div class="engine-row" title="API Key"><i class="fas fa-key"></i> <span>••••••••' + keyTail + '</span></div>';
+                html += '  </div>';
+                html += '  <div class="engine-meter">';
+                html += '    <div class="meter-head"><span>Token 消耗</span><strong>' + tokens.toLocaleString() + '</strong></div>';
+                html += '    <div class="meter-bar"><div class="meter-fill" style="width:' + tokenPercent + '%;"></div></div>';
+                html += '  </div>';
+                html += '  <div class="engine-actions">';
+                html += '    <button class="primary-btn" data-action="test" data-id="' + item.id + '" data-name="' + safeNameAttr + '"><i class="fas fa-comment-dots"></i> 测试</button>';
+                if(item.is_default !== 1) {
+                    html += '    <button class="primary-btn default-btn" data-action="default" data-id="' + item.id + '"><i class="fas fa-check-circle"></i> 设为默认</button>';
+                }
+                html += '    <button class="icon-btn" title="编辑模型" aria-label="编辑模型" data-action="edit" data-id="' + item.id + '"><i class="fas fa-edit"></i></button>';
+                html += '    <button class="icon-btn danger" title="删除模型" aria-label="删除模型" data-action="delete" data-id="' + item.id + '"><i class="fas fa-trash"></i></button>';
+                html += '  </div>';
+                html += '</div>';
+            });
+        }
+        $('#modelWindow').html(html);
+    }
+
+    // 增改表单
+    function openForm(action, data) {
+        layer.open({
+            type: 1,
+            title: action === 'add' ? '新增模型服务' : '编辑模型配置',
+            area: ['550px', '400px'],
+            content: $('#modelFormTpl').html(),
+            success: function(layero, index){
+                $('#formAction').val(action);
+                if(action === 'edit' && data) {
+                    layui.form.val('modelForm', data);
+                }
+                layui.form.render();
+                layui.form.on('submit(submitModelForm)', function(formData){
+                    var reqData = formData.field;
+                    reqData._xsrf = xsrf;
+                    $.post('/api/model_engine', reqData, function(res){
+                        if(res.code === 0){
+                            layer.msg(res.msg, {icon: 1, time: 1000}, function(){
+                                layer.close(index);
+                                loadModels();
+                            });
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    }, 'json');
+                    return false;
+                });
+            }
+        });
+    }
+
+    // 删除模型
+    function deleteModel(id) {
+        layer.confirm('确定要删除这个模型配置吗？', {icon: 3, title:'提示'}, function(index){
+            $.post('/api/model_engine', {action: 'delete', id: id, _xsrf: xsrf}, function(res){
+                if(res.code === 0){
+                    layer.msg('删除成功');
+                    loadModels();
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            }, 'json');
+            layer.close(index);
+        });
+    }
+
+    // 设为默认
+    function setDefault(id) {
+        $.post('/api/model_engine', {action: 'set_default', id: id, _xsrf: xsrf}, function(res){
+            if(res.code === 0){
+                layer.msg('设置成功');
+                loadModels();
+            } else {
+                layer.msg(res.msg, {icon: 2});
+            }
+        }, 'json');
+    }
+
+    // 打开测试面板
+    function openTest(id, name) {
+        currentTestData = {id: id, name: name};
+        var safeName = escapeHtml(name || '');
+        layer.open({
+            type: 1,
+            title: '<i class="fas fa-robot" style="color:var(--accent);"></i> 测试对话 - ' + safeName,
+            area: ['600px', '480px'],
+            content: $('#testFormTpl').html()
+        });
+    }
+
+    // 发送测试消息 (支持 SSE 流式返回)
+    async function sendTestMsg() {
+        var msg = $('#testMessage').val().trim();
+        if(!msg) return layer.msg('请输入内容');
+        
+        var $box = $('#chatBox');
+        // 渲染用户消息
+        $box.append('<div class="chat-msg user"><div class="chat-bubble">' + escapeHtml(msg) + '</div></div>');
+        $('#testMessage').val('');
+        $box.scrollTop($box[0].scrollHeight);
+        
+        // 创建 AI 回复占位泡泡，带闪烁光标
+        var msgId = 'msg_' + new Date().getTime();
+        $box.append('<div class="chat-msg ai"><div class="chat-bubble" id="'+msgId+'"><span class="cursor-blink"></span></div></div>');
+        $box.scrollTop($box[0].scrollHeight);
+
+        try {
+            const response = await fetch('/api/model_engine/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `id=${currentTestData.id}&message=${encodeURIComponent(msg)}&_xsrf=${xsrf}`
+            });
+            
+            if (!response.ok) throw new Error('网络请求失败');
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullText = '';
+            let buffer = '';
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, {stream: true});
+                let lines = buffer.split('\n');
+                buffer = lines.pop(); // 保留最后一行不完整的字符串在 buffer 中
+                
+                for (let line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.slice(6).trim();
+                        if (dataStr === '[DONE]') {
+                            $('#'+msgId).find('.cursor-blink').remove();
+                            loadModels(); // 更新背景的 Token 统计
+                            continue;
+                        }
+                        try {
+                            const parsed = JSON.parse(dataStr);
+                            if (parsed.error) {
+                                $('#'+msgId).html('<span style="color:var(--error);"><i class="fas fa-exclamation-circle"></i> ' + escapeHtml(parsed.error) + '</span>');
+                            } else if (parsed.content !== undefined) {
+                                fullText += parsed.content;
+                                let htmlText = escapeHtml(fullText).replace(/\n/g, '<br>');
+                                $('#'+msgId).html(htmlText + '<span class="cursor-blink"></span>');
+                                $box.scrollTop($box[0].scrollHeight);
+                            } else if (parsed.tokens) {
+                                let tokensHtml = '<div style="font-size:11px; color:var(--ink-faint); margin-top:8px; border-top:1px solid var(--border-light); padding-top:5px; text-align:right;">消耗 Tokens: ' + parsed.tokens + '</div>';
+                                $('#'+msgId).append(tokensHtml);
+                                $box.scrollTop($box[0].scrollHeight);
+                            }
+                        } catch(e) {}
+                    }
+                }
+            }
+        } catch(e) {
+            $('#'+msgId).html('<span style="color:var(--error);"><i class="fas fa-exclamation-circle"></i> 网络请求失败，请检查服务状态。</span>');
+            $box.scrollTop($box[0].scrollHeight);
+        }
+    }
+</script>
+{% end %}

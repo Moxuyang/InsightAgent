@@ -1,0 +1,147 @@
+{% extends "../base.html" %}
+{% block style %}
+<style>
+    .db-config-card {
+        background: var(--surface); border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 20px;
+    }
+    .db-config-card h3 { font-size: 15px; font-weight: 700; color: var(--ink-heavy); margin-bottom: 4px; }
+    .db-config-card .db-subtitle { font-size: 12px; color: var(--ink-muted); margin-bottom: 16px; }
+    .db-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .db-status.sqlite { background: var(--success-bg); color: var(--success); }
+    .db-status.mysql { background: var(--info-bg); color: var(--info); }
+    .db-config-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; align-items: flex-end; }
+    .db-config-row .layui-inline { margin-bottom: 0; }
+    .db-config-row .layui-form-label { width: auto; min-width: 60px; }
+    .db-config-row .layui-input-inline { width: 140px; }
+</style>
+{% end %}
+
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-cogs"></i> 系统设置</h1>
+            <p class="page-subtitle">管理系统全局配置参数</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+
+            <!-- 数据库配置 -->
+            <div class="db-config-card">
+                <h3><i class="fas fa-database" style="color:var(--accent);margin-right:6px;"></i>数据库配置</h3>
+                <p class="db-subtitle">当前: <span class="db-status {{ db_config.get('db_type', 'sqlite') }}" id="dbStatusLabel">{{ db_config.get('db_type', 'sqlite') }}</span>{% if not has_pymysql %} <span style="color:var(--warning);font-size:11px;">（pymysql 未安装，MySQL 不可用）</span>{% end %}</p>
+                <form class="layui-form">
+                    <div class="db-config-row">
+                        <div class="layui-inline">
+                            <label class="layui-form-label">数据库类型</label>
+                            <div class="layui-input-inline">
+                                <select name="db_type" id="dbType" lay-filter="dbType">
+                                    <option value="sqlite" {% if db_config.get('db_type','sqlite')=='sqlite' %}selected{% end %}>SQLite</option>
+                                    <option value="mysql" {% if db_config.get('db_type')=='mysql' %}selected{% end %}>MySQL</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="mysqlConfig" {% if db_config.get('db_type','sqlite')!='mysql' %}style="display:none;"{% end %}>
+                        <div class="db-config-row">
+                            <div class="layui-inline"><label class="layui-form-label">主机</label><div class="layui-input-inline"><input type="text" name="mysql_host" value="{{ db_config.get('mysql_host', '127.0.0.1') }}" class="layui-input"></div></div>
+                            <div class="layui-inline"><label class="layui-form-label">端口</label><div class="layui-input-inline"><input type="text" name="mysql_port" value="{{ db_config.get('mysql_port', '3306') }}" class="layui-input"></div></div>
+                        </div>
+                        <div class="db-config-row">
+                            <div class="layui-inline"><label class="layui-form-label">用户名</label><div class="layui-input-inline"><input type="text" name="mysql_user" value="{{ db_config.get('mysql_user', 'root') }}" class="layui-input"></div></div>
+                            <div class="layui-inline"><label class="layui-form-label">密码</label><div class="layui-input-inline"><input type="password" name="mysql_password" value="{{ db_config.get('mysql_password', '') }}" class="layui-input"></div></div>
+                        </div>
+                        <div class="db-config-row">
+                            <div class="layui-inline"><label class="layui-form-label">数据库名</label><div class="layui-input-inline"><input type="text" name="mysql_database" value="{{ db_config.get('mysql_database', 'insight_agent') }}" class="layui-input"></div></div>
+                        </div>
+                    </div>
+                    <div class="db-config-row">
+                        <button type="button" class="layui-btn layui-btn-sm" id="testMysqlBtn" style="background:var(--accent);border-color:var(--accent);"><i class="fas fa-plug"></i> 测试MySQL连接</button>
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" id="saveDbBtn"><i class="fas fa-save"></i> 保存数据库配置</button>
+                    </div>
+                </form>
+            </div>
+            <table id="dataTable" lay-filter="dataTable"></table>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i class="layui-icon layui-icon-add-1"></i> 新增配置</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i> 批量删除</button>
+    </div>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+<script type="text/html" id="formTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container" lay-filter="dataForm">
+            <input type="hidden" name="id"><input type="hidden" name="action" id="formAction"><input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+            <div class="layui-form-item"><label class="layui-form-label">配置键</label><div class="layui-input-block"><input type="text" name="config_key" required class="layui-input" id="cfgKey"></div></div>
+            <div class="layui-form-item"><label class="layui-form-label">配置值</label><div class="layui-input-block"><textarea name="config_value" class="layui-textarea" rows="3"></textarea></div></div>
+            <div class="layui-form-item"><label class="layui-form-label">描述</label><div class="layui-input-block"><input type="text" name="description" class="layui-input"></div></div>
+            <button class="layui-hide" lay-submit lay-filter="saveData" id="realSaveBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveBtn').click()">保存</button>
+        <button class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['table','form','layer','jquery'],function(){
+    var table=layui.table,form=layui.form,layer=layui.layer,$=layui.jquery,xsrf='{{ handler.xsrf_token }}';
+    table.render({elem:'#dataTable',url:'/api/system_config',toolbar:'#toolbarDemo',page:{limit:20},defaultToolbar:['filter'],cols:[[{type:'checkbox'},{field:'id',title:'ID',width:70},{field:'config_key',title:'配置键',minWidth:180},{field:'config_value',title:'配置值',minWidth:220},{field:'description',title:'描述',minWidth:150},{field:'create_at',title:'创建时间',width:170},{fixed:'right',title:'操作',toolbar:'#barDemo',width:160}]]});
+    table.on('toolbar(dataTable)',function(obj){if(obj.event==='add')openForm('add',{});else if(obj.event==='batchDel'){var d=table.checkStatus(obj.config.id).data;if(!d.length)return layer.msg('请选择记录');layer.confirm('确定删除'+d.length+'条？',function(i){$.post('/api/system_config',{action:'batch_delete',ids:d.map(function(x){return x.id}).join(','),_xsrf:xsrf},function(r){layer.close(i);layer.msg(r.msg,{icon:r.code===0?1:2});table.reload('dataTable');},'json');});}});
+    table.on('tool(dataTable)',function(obj){if(obj.event==='del'){layer.confirm('确定删除？',function(i){$.post('/api/system_config',{action:'delete',id:obj.data.id,_xsrf:xsrf},function(r){layer.close(i);if(r.code===0){obj.del();layer.msg(r.msg,{icon:1});}else layer.msg(r.msg,{icon:2});},'json');});}else if(obj.event==='edit')openForm('edit',obj.data);});
+    function openForm(act,data){layer.open({type:1,title:act==='add'?'新增配置':'编辑配置',area:['600px','420px'],content:$('#formTpl').html(),success:function(layero,idx){$('#formAction').val('set');if(act==='edit'){form.val('dataForm',data);$('#cfgKey').prop('readonly',true).addClass('layui-disabled');}form.on('submit(saveData)',function(fd){$.post('/api/system_config',fd.field,function(r){if(r.code===0){layer.close(idx);layer.msg(r.msg,{icon:1});table.reload('dataTable');}else layer.msg(r.msg,{icon:2});},'json');return false;});}});}
+
+    // 数据库配置
+    form.on('select(dbType)', function(data){
+        if(data.value==='mysql') $('#mysqlConfig').show(); else $('#mysqlConfig').hide();
+    });
+
+    $('#testMysqlBtn').click(function(){
+        var btn=$(this); btn.prop('disabled',true).text('测试中...');
+        $.post('/api/system_config', {
+            action:'test_mysql',
+            mysql_host: $('[name=mysql_host]').val(),
+            mysql_port: $('[name=mysql_port]').val(),
+            mysql_user: $('[name=mysql_user]').val(),
+            mysql_password: $('[name=mysql_password]').val(),
+            mysql_database: $('[name=mysql_database]').val(),
+            _xsrf: xsrf
+        }, function(r){
+            btn.prop('disabled',false).html('<i class="fas fa-plug"></i> 测试MySQL连接');
+            layer.msg(r.msg, {icon: r.code===0?1:2});
+        }, 'json');
+    });
+
+    $('#saveDbBtn').click(function(){
+        layer.confirm('保存数据库配置后需重启服务才能生效，确定保存？', function(i){
+            layer.close(i);
+            $.post('/api/system_config', {
+                action:'save_db_config',
+                db_type: $('#dbType').val(),
+                mysql_host: $('[name=mysql_host]').val(),
+                mysql_port: $('[name=mysql_port]').val(),
+                mysql_user: $('[name=mysql_user]').val(),
+                mysql_password: $('[name=mysql_password]').val(),
+                mysql_database: $('[name=mysql_database]').val(),
+                _xsrf: xsrf
+            }, function(r){
+                layer.msg(r.msg, {icon: r.code===0?1:2});
+                if(r.code===0) $('#dbStatusLabel').text($('#dbType').val()).attr('class','db-status '+$('#dbType').val());
+            }, 'json');
+        });
+    });
+});
+</script>
+{% end %}

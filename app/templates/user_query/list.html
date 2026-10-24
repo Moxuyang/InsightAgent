@@ -1,0 +1,53 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page management-page" data-management="user_query">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-comment-dots"></i> 对话管理</h1>
+            <p class="page-subtitle">回顾每一次提问，在上下文中阅读 AI 的回答</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="dataTable" lay-filter="dataTable"></table>
+        </div>
+    </div>
+</div>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="exportPdf" style="background:var(--accent);border-color:var(--accent);"><i class="fas fa-file-pdf"></i> 导出所选</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="batchDel"><i class="layui-icon layui-icon-delete"></i> 批量删除</button>
+    </div>
+</script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-bg-blue" lay-event="view">查看详情</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+{% end %}
+
+{% block script %}
+<script src="{{ static_url('js/management-cards.js') }}"></script>
+<script>
+layui.use(['laytpl','table','layer','jquery'],function(){
+    var safe=ManagementCards.escape;var table=layui.table,layer=layui.layer,$=layui.jquery,xsrf='{{ handler.xsrf_token }}';
+    ManagementCards.render({elem:'#dataTable',url:'/api/user_query',toolbar:'#toolbarDemo',page:{limit:20},defaultToolbar:['filter'],cols:[[{type:'checkbox'},{field:'id',title:'ID',width:70},{field:'username',title:'用户',minWidth:120},{field:'query_text',title:'提问内容',minWidth:260},{field:'tokens_used',title:'消耗Token',width:100},{field:'create_at',title:'提问时间',width:170},{fixed:'right',title:'操作',toolbar:'#barDemo',width:175}]]});
+    ManagementCards.on('toolbar(dataTable)',function(obj){
+        if(obj.event==='batchDel'){
+            var d=ManagementCards.checkStatus(obj.config.id).data;if(!d.length)return layer.msg('请选择记录');
+            layer.confirm('确定删除'+d.length+'条？',function(i){
+                $.post('/api/user_query',{action:'batch_delete',ids:d.map(function(x){return x.id}).join(','),_xsrf:xsrf},function(r){layer.close(i);layer.msg(r.msg,{icon:r.code===0?1:2});ManagementCards.reload('dataTable');},'json');
+            });
+        } else if(obj.event==='exportPdf'){
+            var d=ManagementCards.checkStatus(obj.config.id).data;
+            if(!d.length) return layer.msg('请选择要导出的记录');
+            var ids=d.map(function(x){return x.id}).join(',');
+            window.open('/api/export/pdf?type=queries&ids='+ids, '_blank');
+        }
+    });
+    ManagementCards.on('tool(dataTable)',function(obj){
+        if(obj.event==='del'){layer.confirm('确定删除？',function(i){$.post('/api/user_query',{action:'delete',id:obj.data.id,_xsrf:xsrf},function(r){layer.close(i);if(r.code===0){obj.del();layer.msg(r.msg,{icon:1});}else layer.msg(r.msg,{icon:2});},'json');});}
+        else if(obj.event==='view'){layer.open({type:1,title:'对话详情',area:['700px','500px'],content:'<div style="padding:20px;"><p><b>用户:</b> '+safe(obj.data.username)+'</p><p><b>时间:</b> '+safe(obj.data.create_at)+'</p><p><b>Token消耗:</b> '+safe(obj.data.tokens_used)+'</p><hr><p><b>提问:</b></p><p style="background:#FFF5ED;padding:12px;border-radius:8px;">'+safe(obj.data.query_text)+'</p><p style="margin-top:16px;"><b>回答:</b></p><div class="qa-answer" data-query-answer></div></div>',success:function(layero){NewsQa.renderMarkdown(layero[0].querySelector('[data-query-answer]'),obj.data.response_text||'暂无回答');}});}
+    });
+});
+</script>
+{% end %}

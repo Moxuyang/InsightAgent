@@ -1,0 +1,210 @@
+{% extends "../base.html" %}
+{% block body %}
+<div class="admin-page">
+    <div class="page-header">
+        <div class="page-header-left">
+            <h1 class="page-title"><i class="fas fa-sitemap"></i> 功能管理</h1>
+            <p class="page-subtitle">统一维护功能入口、菜单层级与展示顺序</p>
+        </div>
+    </div>
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <table id="menuTable" lay-filter="menuTable"></table>
+        </div>
+    </div>
+</div>
+
+<!-- 顶部工具栏 -->
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add">
+            <i class="layui-icon layui-icon-add-1"></i> 新增功能菜单
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="expandAll">展开全部</button>
+        <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="foldAll">折叠全部</button>
+    </div>
+</script>
+
+<!-- 行工具栏 -->
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="add_child">新增子级</a>
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<!-- 新增/编辑表单 -->
+<script type="text/html" id="menuFormTpl">
+    <div class="admin-layer-content">
+        <form class="layui-form admin-form-container" lay-filter="menuForm">
+            <input type="hidden" name="id">
+            <input type="hidden" name="action" id="formAction">
+            <input type="hidden" name="_xsrf" value="{{ handler.xsrf_token }}">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">上级菜单</label>
+                <div class="layui-input-block">
+                    <select name="parent_id" id="parentSelect">
+                        <option value="0">顶级菜单</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">菜单名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="name" required lay-verify="required" placeholder="如：用户管理" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">菜单路径</label>
+                <div class="layui-input-block">
+                    <input type="text" name="url" placeholder="如：/user/list (父级菜单可留空)" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">图标类名</label>
+                <div class="layui-input-block">
+                    <input type="text" name="icon" placeholder="如：layui-icon-user" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序值</label>
+                <div class="layui-input-block">
+                    <input type="number" name="order_num" value="0" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <!-- 隐藏的真实提交按钮 -->
+            <button class="layui-hide" lay-submit lay-filter="saveMenu" id="realSaveMenuBtn"></button>
+        </form>
+    </div>
+    <div class="admin-layer-footer">
+        <button class="layui-btn layui-btn-normal layui-btn-sm" onclick="document.getElementById('realSaveMenuBtn').click()">确定</button>
+        <button type="button" class="layui-btn layui-btn-primary layui-btn-sm" onclick="layer.closeAll('page')">取消</button>
+    </div>
+</script>
+
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['treeTable', 'form', 'layer', 'jquery'], function(){
+    var treeTable = layui.treeTable;
+    var form = layui.form;
+    var layer = layui.layer;
+    var $ = layui.jquery;
+    var xsrf = '{{ handler.xsrf_token }}';
+    
+    var allMenus = []; // 用于下拉框的数据
+    
+    var renderTable = function() {
+        treeTable.render({
+            elem: '#menuTable',
+            url: '/api/menu?action=tree',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter'],
+            cellMinWidth: 120,
+            tree: {
+                customName: {
+                    id: 'id',
+                    pid: 'parent_id',
+                    name: 'name',
+                    children: 'children'
+                },
+                view: {
+                    expandAllDefault: true
+                }
+            },
+            cols: [[
+                {field: 'name', title: '菜单名称', minWidth: 250},
+                {field: 'url', title: '路径/URL', minWidth: 200},
+                {field: 'icon', title: '图标', minWidth: 150, templet: function(d){
+                    return d.icon ? '<i class="layui-icon ' + d.icon + '"></i> ' + d.icon : '';
+                }},
+                {field: 'order_num', title: '排序', width: 80, align: 'center'},
+                {fixed: 'right', title:'操作', toolbar: '#barDemo', width: 240}
+            ]],
+            done: function(res) {
+                // 扁平化以便下拉框使用
+                $.get('/api/menu?action=list', function(listRes){
+                    allMenus = listRes.data;
+                });
+            }
+        });
+    };
+    renderTable();
+
+    // 头部工具栏
+    treeTable.on('toolbar(menuTable)', function(obj){
+        if(obj.event === 'add'){
+            openForm('add', {parent_id: 0});
+        } else if(obj.event === 'expandAll'){
+            treeTable.expandAll('menuTable', true);
+        } else if(obj.event === 'foldAll'){
+            treeTable.expandAll('menuTable', false);
+        }
+    });
+
+    // 行工具事件
+    treeTable.on('tool(menuTable)', function(obj){
+        var data = obj.data;
+        if(obj.event === 'del'){
+            layer.confirm('真的删除菜单【' + data.name + '】么？', {icon: 3, title:'提示'}, function(index){
+                $.post('/api/menu', {action: 'delete', id: data.id, _xsrf: xsrf}, function(res){
+                    if(res.code === 0){
+                        layer.close(index);
+                        layer.msg('删除成功', {icon: 1});
+                        renderTable();
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                }, 'json');
+            });
+        } else if(obj.event === 'edit'){
+            openForm('edit', data);
+        } else if(obj.event === 'add_child'){
+            openForm('add', {parent_id: data.id});
+        }
+    });
+
+    function openForm(action, data) {
+        layer.open({
+            type: 1,
+            title: action === 'add' ? '新增菜单' : '编辑菜单',
+            area: ['550px', '520px'],
+            content: $('#menuFormTpl').html(),
+            success: function(layero, index){
+                $('#formAction').val(action);
+                
+                // 渲染上级菜单下拉框 (最多支持二级或多级)
+                var sel = $('#parentSelect');
+                $.each(allMenus, function(i, item){
+                    if(action === 'edit' && item.id === data.id) return; // 不能选自己
+                    sel.append('<option value="'+item.id+'">'+item.name+'</option>');
+                });
+                
+                if(action === 'edit'){
+                    form.val('menuForm', data);
+                } else {
+                    form.val('menuForm', {parent_id: data.parent_id});
+                }
+                form.render('select');
+                
+                // 监听提交
+                form.on('submit(saveMenu)', function(formData){
+                    $.post('/api/menu', formData.field, function(res){
+                        if(res.code === 0){
+                            layer.close(index);
+                            layer.msg(res.msg, {icon: 1});
+                            renderTable(); 
+                        } else {
+                            layer.msg(res.msg, {icon: 2});
+                        }
+                    }, 'json');
+                    return false;
+                });
+            }
+        });
+    }
+});
+</script>
+{% end %}

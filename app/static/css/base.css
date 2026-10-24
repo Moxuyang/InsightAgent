@@ -1,0 +1,1297 @@
+/* ===================================================================
+   InsightAgent Design System v2 — Brand Register
+   严肃·冷静·专业·高端
+   =================================================================== */
+
+/* === 1. CSS Custom Properties ==================================== */
+:root {
+  /* Color: Neutrals — tinted toward brand hue, not dead gray */
+  --ink:            #253349;
+  --ink-heavy:      #152339;
+  --ink-muted:      #65748b;
+  --ink-faint:      #8995a7;
+  --ink-placeholder: #8995a7;
+
+  --bg:             #f3f5f8;
+  --bg-subtle:      #f6f8fb;
+  --surface:        #fff;
+  --surface-hover:  #f8faff;
+
+  --border:         #dce3ed;
+  --border-light:   #e9edf3;
+  --border-strong:  #bcc8d8;
+
+  /* Color: Brand — shared workspace blue */
+  --accent:           #365ee8;
+  --accent-hover:     #294bcc;
+  --accent-press:     #203da9;
+  --accent-muted:     #dee7ff;
+  --accent-subtle:    #eef3ff;
+  --accent-text:      #365ee8;
+  --accent-glow:      #365ee81a;
+
+  /* Color: Semantic */
+  --success:        oklch(0.55 0.14 148);
+  --success-bg:     oklch(0.94 0.04 148);
+  --warning:        oklch(0.62 0.14 78);
+  --warning-bg:     oklch(0.94 0.06 78);
+  --error:          oklch(0.50 0.20 20);
+  --error-bg:       oklch(0.94 0.04 20);
+  --info:           oklch(0.55 0.09 250);
+  --info-bg:        oklch(0.94 0.03 250);
+
+  /* Typography */
+  --font-sans: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Courier New', monospace;
+
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.8125rem; /* 13px */
+  --text-base: 1rem;      /* 16px */
+  --text-md:   1.125rem;  /* 18px */
+  --text-lg:   1.25rem;   /* 20px */
+  --text-xl:   1.5rem;    /* 24px */
+  --text-2xl:  1.875rem;  /* 30px */
+  --text-3xl:  2.375rem;  /* 38px */
+
+  --leading-tight:  1.25;
+  --leading-snug:   1.4;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.75;
+
+  --weight-light:   300;
+  --weight-normal:  400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+
+  --tracking-tight:  -0.02em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.02em;
+  --tracking-caps:   0.06em;
+
+  /* Spacing — 4pt base scale */
+  --space-0:  0;
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius:      8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.05), 0 1px 2px oklch(0 0 0 / 0.03);
+  --shadow:    0 1px 3px oklch(0 0 0 / 0.06), 0 2px 6px oklch(0 0 0 / 0.03);
+  --shadow-md: 0 4px 8px oklch(0 0 0 / 0.05), 0 2px 4px oklch(0 0 0 / 0.03);
+  --shadow-lg: 0 8px 24px oklch(0 0 0 / 0.06), 0 2px 8px oklch(0 0 0 / 0.03);
+
+  /* Transitions */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --duration-100: 100ms;
+  --duration-150: 150ms;
+  --duration-200: 200ms;
+  --duration-300: 300ms;
+  --duration-500: 500ms;
+
+  /* Z-index scale */
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+  --z-tooltip:  600;
+}
+
+/* === 2. Reset & Base ============================================= */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent-text);
+  text-decoration: none;
+  transition: color var(--duration-150) var(--ease-out);
+}
+a:hover { color: var(--accent-hover); }
+
+img, svg { display: block; max-width: 100%; }
+
+::selection {
+  background: var(--accent-muted);
+  color: var(--ink-heavy);
+}
+
+::placeholder {
+  color: var(--ink-placeholder);
+  opacity: 1;
+}
+
+/* === 3. Typography =============================================== */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink-heavy);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+h1 { font-size: var(--text-3xl); letter-spacing: var(--tracking-tight); }
+h2 { font-size: var(--text-2xl); letter-spacing: var(--tracking-tight); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+h5 { font-size: var(--text-base); }
+h6 { font-size: var(--text-sm); }
+
+p { margin-bottom: var(--space-4); }
+p:last-child { margin-bottom: 0; }
+
+.text-muted  { color: var(--ink-muted); }
+.text-faint  { color: var(--ink-faint); }
+.text-accent  { color: var(--accent-text); }
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-error   { color: var(--error); }
+.text-info    { color: var(--info); }
+
+.font-mono { font-family: var(--font-mono); }
+.font-light { font-weight: var(--weight-light); }
+.font-normal { font-weight: var(--weight-normal); }
+.font-medium { font-weight: var(--weight-medium); }
+.font-semibold { font-weight: var(--weight-semibold); }
+.font-bold { font-weight: var(--weight-bold); }
+
+/* === 4. Scrollbar ================================================ */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+
+/* === 5. Layout Utilities ========================================= */
+.container-fluid { max-width: 100%; padding: 0 var(--space-6); }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }
+
+.grid { display: grid; }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* === 6. Buttons ================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--duration-150) var(--ease-out);
+  white-space: nowrap;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+.btn-primary:active { background: var(--accent-press); transform: scale(0.98); }
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+.btn-secondary:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-subtle);
+}
+.btn-secondary:active { background: var(--bg); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-muted);
+}
+.btn-ghost:hover {
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+
+.btn-danger {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: transparent;
+}
+.btn-danger:hover {
+  background: var(--error);
+  color: #fff;
+}
+
+.btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); border-radius: var(--radius-sm); }
+.btn-lg { padding: var(--space-3) var(--space-8); font-size: var(--text-base); }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* === 7. Cards & Surfaces ========================================= */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--duration-200) var(--ease-out);
+}
+.card:hover { box-shadow: var(--shadow-sm); }
+.card-body { padding: var(--space-6); }
+
+/* Stat card */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5) var(--space-6);
+  transition: all var(--duration-200) var(--ease-out);
+}
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.stat-card-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--ink-heavy);
+  line-height: 1.2;
+}
+.stat-card-label {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  margin-top: var(--space-2);
+}
+
+/* === 8. Forms ==================================================== */
+.form-group { margin-bottom: var(--space-5); }
+.form-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--ink);
+  margin-bottom: var(--space-2);
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all var(--duration-150) var(--ease-out);
+  outline: none;
+}
+.form-input:hover, .form-select:hover, .form-textarea:hover {
+  border-color: var(--border-strong);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.form-input::placeholder { color: var(--ink-placeholder); }
+.form-input:disabled {
+  background: var(--bg-subtle);
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+
+.form-textarea { min-height: 80px; resize: vertical; }
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.form-error {
+  font-size: var(--text-xs);
+  color: var(--error);
+  margin-top: var(--space-1);
+}
+
+/* Floating label input */
+.floating-label {
+  position: relative;
+}
+.floating-label .form-input {
+  padding-top: var(--space-5);
+  padding-bottom: var(--space-2);
+}
+.floating-label label {
+  position: absolute;
+  top: 50%;
+  left: var(--space-3);
+  transform: translateY(-50%);
+  font-size: var(--text-sm);
+  color: var(--ink-placeholder);
+  pointer-events: none;
+  transition: all var(--duration-150) var(--ease-out);
+}
+.floating-label .form-input:focus ~ label,
+.floating-label .form-input:not(:placeholder-shown) ~ label {
+  top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--accent-text);
+}
+
+/* === 9. Tables =================================================== */
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-sm);
+}
+.table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--weight-semibold);
+  color: var(--ink-muted);
+  font-size: var(--text-xs);
+  text-transform: none;
+  letter-spacing: 0;
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border);
+}
+.table th:first-child { border-radius: var(--radius) 0 0 0; }
+.table th:last-child { border-radius: 0 var(--radius) 0 0; }
+.table td {
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink);
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+.table tbody tr {
+  transition: background var(--duration-100) var(--ease-out);
+}
+.table tbody tr:hover { background: var(--bg-subtle); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* === 10. Badges & Tags =========================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+.badge-success { background: var(--success-bg); color: var(--success); }
+.badge-warning { background: var(--warning-bg); color: var(--warning); }
+.badge-error   { background: var(--error-bg);   color: var(--error); }
+.badge-info    { background: var(--info-bg);    color: var(--info); }
+.badge-accent  { background: var(--accent-subtle); color: var(--accent-text); }
+.badge-neutral { background: var(--bg-subtle); color: var(--ink-muted); }
+
+/* === 11. Alerts ================================================== */
+.alert {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  border: 1px solid transparent;
+}
+.alert-success { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.alert-warning { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+.alert-error   { background: var(--error-bg);   border-color: var(--error);   color: var(--error); }
+.alert-info    { background: var(--info-bg);    border-color: var(--info);    color: var(--info); }
+
+/* === 12. Dividers ================================================ */
+.divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: var(--space-6) 0;
+  border: none;
+}
+
+/* === 13. Animations ============================================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes subtleLift {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+.animate-fade-in    { animation: fadeIn var(--duration-300) var(--ease-out) both; }
+.animate-fade-in-up { animation: fadeInUp var(--duration-400) var(--ease-out) both; }
+.animate-scale-in   { animation: scaleIn var(--duration-200) var(--ease-out) both; }
+
+/* Stagger children */
+.stagger > * {
+  opacity: 0;
+  animation: fadeInUp var(--duration-400) var(--ease-out) forwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 60ms; }
+.stagger > *:nth-child(3) { animation-delay: 120ms; }
+.stagger > *:nth-child(4) { animation-delay: 180ms; }
+.stagger > *:nth-child(5) { animation-delay: 240ms; }
+.stagger > *:nth-child(6) { animation-delay: 300ms; }
+.stagger > *:nth-child(7) { animation-delay: 360ms; }
+.stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* ===================================================================
+   Layui v2.13.6 — Full Visual Override
+   Keep JS functionality; replace ALL visual styles.
+   =================================================================== */
+
+/* === L1. Header / Top Bar ======================================== */
+.layui-layout-admin .layui-header {
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
+}
+.layui-layout-admin .layui-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-6);
+  height: 52px;
+  width: 220px;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-heavy);
+  background: transparent;
+  border-right: 1px solid var(--border-light);
+  letter-spacing: 0;
+}
+.layui-layout-admin .layui-logo .brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* Top nav */
+.layui-nav.layui-layout-left {
+  background: transparent;
+}
+.layui-nav .layui-nav-item {
+  line-height: 52px;
+}
+.layui-nav .layui-nav-item a {
+  font-size: var(--text-sm) !important;
+  color: var(--ink-muted);
+  padding: 0 var(--space-4);
+  transition: color var(--duration-150) var(--ease-out);
+}
+.layui-nav .layui-nav-item a:hover {
+  color: var(--ink);
+  background: transparent;
+}
+.layui-nav .layui-this a {
+  color: var(--accent-text) !important;
+  font-weight: var(--weight-medium);
+}
+.layui-nav .layui-nav-bar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* Right side user menu */
+.layui-nav.layui-layout-right { background: transparent; }
+.layui-nav.layui-layout-right .layui-nav-item a {
+  color: var(--ink-muted);
+}
+
+/* === L2. Sidebar ================================================= */
+.layui-layout-admin .layui-side {
+  width: 220px;
+  top: 52px;
+  background: var(--surface);
+  border-right: 1px solid var(--border-light);
+}
+.layui-side .layui-nav {
+  background: transparent;
+  padding: var(--space-3) 0;
+  border-radius: 0;
+}
+.layui-side .layui-nav .layui-nav-item {
+  line-height: 1;
+}
+.layui-side .layui-nav .layui-nav-item a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-sm) !important;
+  color: var(--ink-muted);
+  border-radius: 0;
+  margin: 1px var(--space-3);
+  transition: all var(--duration-150) var(--ease-out);
+}
+.layui-side .layui-nav .layui-nav-item a:hover {
+  background: var(--bg-subtle);
+  color: var(--ink);
+}
+.layui-side .layui-nav .layui-nav-itemed > a {
+  color: var(--ink-heavy) !important;
+  font-weight: var(--weight-semibold);
+  background: var(--bg-subtle);
+}
+.layui-side .layui-nav .layui-this > a {
+  background: var(--accent-subtle) !important;
+  color: var(--accent-text) !important;
+  font-weight: var(--weight-medium);
+}
+.layui-side .layui-nav .layui-nav-item i {
+  font-size: var(--text-base);
+  width: 18px;
+  text-align: center;
+}
+.layui-side .layui-nav .layui-nav-child {
+  background: transparent;
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-4);
+}
+.layui-side .layui-nav .layui-nav-child a {
+  font-size: var(--text-xs) !important;
+  padding: var(--space-2) var(--space-3);
+  margin: 1px 0;
+}
+.layui-side .layui-nav-tree .layui-nav-bar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+/* === L3. Body / Content Area ===================================== */
+.layui-body {
+  top: 52px;
+  left: 220px;
+  bottom: 0;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+/* === L4. Layui Table Override ==================================== */
+.layui-table {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
+  font-size: var(--text-sm) !important;
+}
+
+/* ========== Table Cell Overflow Strategy ==========
+   - Normal cells: truncate with ellipsis
+   - Operation column cells: contain within the table, hide overflow
+   - Table container: allow horizontal scroll when columns exceed width
+   =================================================== */
+
+/* Global table wrapper containment */
+.layui-table-view {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.layui-table-box {
+  max-width: 100%;
+}
+
+/* Normal cells: text truncation */
+.layui-table-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Fixed-right operation column: clip, do NOT bleed out of viewport */
+.layui-table-fixed-r .layui-table-cell {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Operation cells in main body: clip as well */
+.layui-table-main .layui-table-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Buttons inside cells: inline, no wrap, clip if needed */
+.layui-table-cell .layui-btn-xs {
+  display: inline-block;
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin: 1px 2px;
+  vertical-align: middle;
+}
+
+/* Badge coexistence */
+.layui-table-cell .layui-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* For cells with action buttons, use flex-flow to pack them */
+.layui-table-cell:has(.layui-btn-xs),
+.layui-table-fixed-r .layui-table-cell:has(.layui-btn-xs) {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  overflow: hidden;
+  white-space: normal;
+  min-width: 0;
+  padding: 0 6px;
+}
+.layui-table-cell:has(.layui-btn-xs) .layui-btn-xs {
+  flex-shrink: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+.layui-table th {
+  background: var(--bg-subtle);
+  color: var(--ink-muted);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-xs) !important;
+  border-color: var(--border);
+  padding: var(--space-3) var(--space-4);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.layui-table td {
+  border-color: var(--border-light);
+  color: var(--ink);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm) !important;
+}
+.layui-table-hover { background: var(--bg-subtle) !important; }
+.layui-table-click { background: var(--accent-subtle) !important; }
+.layui-table-view { border-color: transparent !important; }
+
+/* Toolbar area above table */
+.layui-table-tool {
+  background: transparent;
+  padding: 0 0 var(--space-4) 0;
+  border: none;
+}
+.layui-table-tool-temp { padding-right: 0; }
+
+/* Pagination */
+.layui-laypage a, .layui-laypage span {
+  border-radius: var(--radius-sm);
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+}
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-weight: var(--weight-medium);
+}
+.layui-laypage a:hover { color: var(--accent-text); border-color: var(--accent); }
+.layui-laypage-btn { border-radius: var(--radius-sm) !important; }
+.layui-laypage-skip {
+  color: var(--ink);
+}
+.layui-laypage-skip .layui-input {
+  border-radius: var(--radius-sm);
+  border-color: var(--border);
+}
+.layui-laypage-count { color: var(--ink-muted); }
+
+/* === L5. Layui Button Override =================================== */
+.layui-btn {
+  height: auto;
+  line-height: 1.5;
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-sans);
+  border-radius: var(--radius);
+  transition: all var(--duration-150) var(--ease-out);
+  letter-spacing: 0;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+.layui-btn-normal {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: none;
+  animation: none;
+}
+.layui-btn-normal:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 2px 12px var(--accent-glow);
+  transform: none;
+}
+.layui-btn-warm {
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+  font-weight: var(--weight-medium);
+  border: 1px solid var(--accent);
+}
+.layui-btn-warm:hover {
+  background: var(--accent-muted);
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
+.layui-btn-danger {
+  background: var(--error-bg);
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+.layui-btn-danger:hover {
+  background: var(--error);
+  color: #fff;
+  transform: none;
+}
+.layui-btn-primary {
+  border: 1px solid var(--border);
+  color: var(--ink-muted);
+  background: var(--surface);
+}
+.layui-btn-primary:hover {
+  border-color: var(--border-strong);
+  color: var(--ink);
+  background: var(--bg-subtle);
+  transform: none;
+  box-shadow: none;
+}
+.layui-btn-sm { padding: var(--space-1) var(--space-3); font-size: var(--text-xs); }
+.layui-btn-lg { padding: var(--space-3) var(--space-8); font-size: var(--text-base); }
+.layui-bg-blue { background: var(--accent) !important; }
+
+/* Remove green pulse/shimmer effects */
+.layui-btn::after { display: none; }
+.layui-btn-normal { background-size: auto; }
+
+/* === L6. Layui Form Override ===================================== */
+.layui-input, .layui-textarea {
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  border-radius: var(--radius);
+  border-color: var(--border);
+  padding: var(--space-2) var(--space-3);
+  line-height: 1.5;
+  height: auto;
+  color: var(--ink);
+  transition: all var(--duration-150) var(--ease-out);
+}
+.layui-input:focus, .layui-textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.layui-input:hover, .layui-textarea:hover {
+  border-color: var(--border-strong);
+}
+
+.layui-form-select dl dd.layui-this {
+  background: var(--accent);
+}
+
+.layui-form-onswitch {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.layui-form-checked[lay-skin=primary] i {
+  border-color: var(--accent) !important;
+  background: var(--accent);
+}
+
+.layui-form-label {
+  font-size: var(--text-sm) !important;
+  color: var(--ink);
+  font-weight: var(--weight-medium);
+}
+
+.layui-form-select .layui-edge {
+  border-top-color: var(--ink-faint);
+}
+
+/* === L7. Layui Card Override ===================================== */
+.layui-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
+}
+.layui-card-header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-light);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-heavy);
+  background: transparent;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.layui-card-body { padding: var(--space-6); }
+
+/* === L8. Layui Layer / Modal Override ============================ */
+.layui-layer-title {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-heavy);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-light);
+}
+.layui-layer-dialog .layui-layer-content {
+  padding: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--ink);
+}
+.layui-layer-btn {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-light);
+  text-align: right;
+}
+.layui-layer-btn .layui-layer-btn0 {
+  background: var(--accent) !important;
+  border: none !important;
+  color: #fff !important;
+  border-radius: var(--radius) !important;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-5);
+}
+.layui-layer-btn .layui-layer-btn1 {
+  border-radius: var(--radius) !important;
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-5);
+}
+.layui-layer-setwin .layui-layer-close {
+  font-size: var(--text-base);
+  color: var(--ink-muted);
+}
+
+/* === L9. Layui Nav Override (global) ============================= */
+.layui-nav {
+  background: transparent;
+}
+.layui-nav .layui-nav-bar { display: none !important; width: 0 !important; height: 0 !important; opacity: 0 !important; pointer-events: none; }
+.layui-nav-tree .layui-nav-item a:hover,
+.layui-nav-tree .layui-nav-item a {
+  border-radius: 0;
+}
+
+/* === L10. Layui Tab Override ===================================== */
+.layui-tab-title li {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+.layui-tab-title .layui-this {
+  color: var(--ink-heavy);
+  font-weight: var(--weight-medium);
+}
+.layui-tab-title .layui-this:after {
+  border-color: var(--accent);
+}
+
+/* === L11. Layui Breadcrumb ======================================= */
+.layui-breadcrumb a {
+  color: var(--ink-muted);
+}
+.layui-breadcrumb a:hover {
+  color: var(--accent-text);
+}
+.layui-breadcrumb a cite {
+  font-style: normal;
+}
+
+/* === L12. Layui Loading ========================================== */
+.layui-layer-loading .layui-layer-content {
+  padding: var(--space-6);
+}
+
+/* ===================================================================
+   Admin Content Area — Page-level patterns
+   =================================================================== */
+
+/* Admin page wrapper (used inside iframe body) */
+.admin-page {
+  padding: var(--space-6) var(--space-6) var(--space-10) var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow-x: hidden;
+}
+
+/* Page header: title + optional right-side actions */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+}
+.page-header-left { flex: 1; min-width: 0; }
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.page-title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-heavy);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.page-title i {
+  color: var(--accent);
+  font-size: var(--text-lg);
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
+.page-title i.fas,
+.page-title i.far,
+.page-title i.fab {
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+.page-title i.layui-icon {
+  font-family: "layui-icon" !important;
+}
+.page-subtitle {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+  margin-top: var(--space-1);
+}
+
+/* Search bar row above table */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+.search-bar .layui-input {
+  width: 220px;
+  max-width: 100%;
+}
+
+/* Legacy alias: .page-container → .admin-page */
+.page-container {
+  padding: var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+  overflow-x: hidden;
+  min-height: auto;
+  background: var(--bg);
+}
+
+/* Form in modal */
+.admin-layer-content {
+  height: calc(100% - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+.admin-form-container {
+  padding: var(--space-5) var(--space-6) var(--space-3) var(--space-6);
+  font-size: var(--text-sm);
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+.admin-form-container .layui-form-label {
+  width: 90px;
+  padding-left: 0;
+  text-align: right;
+  font-weight: var(--weight-medium);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-form-container .layui-input-block {
+  margin-left: 110px;
+  max-width: calc(100% - 110px);
+  min-width: 0;
+}
+.admin-form-container .layui-form-item {
+  margin-bottom: var(--space-5);
+}
+.admin-form-container .layui-input:focus,
+.admin-form-container .layui-textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.admin-form-container .layui-input,
+.admin-form-container .layui-textarea,
+.admin-form-container .layui-form-select {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modal footer buttons */
+.admin-layer-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border-light);
+  border-radius: 0 0 var(--radius) var(--radius);
+  z-index: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+  max-width: 100%;
+}
+.admin-layer-footer .layui-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ===================================================================
+   Responsive
+   =================================================================== */
+@media (max-width: 768px) {
+  .layui-layout-admin .layui-side {
+    width: 0;
+  }
+  .layui-body {
+    left: 0;
+  }
+  .layui-layout-admin .layui-logo {
+    width: auto;
+  }
+  .admin-page {
+    padding: var(--space-4);
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .grid-cols-3, .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+  .search-bar .layui-input {
+    width: 100%;
+  }
+}
+
+/* ===================================================================
+   Reduced Motion
+   =================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ===================================================================
+   Utility: Error text
+   =================================================================== */
+.error { color: var(--error); }
+
+/* ===================================================================
+   Utility: Global color consistency overrides
+   =================================================================== */
+
+/* Fix Layui blue buttons → brand accent */
+.layui-bg-blue { background: var(--accent) !important; }
+
+/* Status badges */
+.status-ok     { background: var(--success-bg); color: var(--success); }
+.status-err    { background: var(--error-bg);   color: var(--error); }
+.status-warn   { background: var(--warning-bg); color: var(--warning); }
+.status-info   { background: var(--info-bg);    color: var(--info); }
+
+/* Two-column layout helper */
+.two-col-layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: var(--space-6);
+  min-height: 0;
+}
+.two-col-left {
+  overflow-y: auto; overflow-x: hidden;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.two-col-right {
+  overflow-y: auto; overflow-x: hidden;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: var(--space-6);
+}
+
+/* Consistent detail panels */
+.detail-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.detail-panel-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--ink-heavy);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* Consistent image containers */
+.img-thumb {
+  max-width: 100%; display: block;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Universal overflow protection */
+.overflow-guard {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}
+
+/* Control bar — consistent toolbar above tables */
+.control-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--space-4); gap: var(--space-3); flex-wrap: wrap;
+}
+.control-bar-left {
+  display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap;
+}
+.control-bar-right {
+  display: flex; align-items: center; gap: var(--space-3);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: var(--space-16) var(--space-6); color: var(--ink-faint);
+}
+.empty-state-icon { font-size: 48px; margin-bottom: var(--space-4); opacity: 0.4; }
+.empty-state-text { font-size: var(--text-sm); color: var(--ink-muted); }
+
+/* Consistent link color */
+a.cell-link { color: var(--accent-text); }
+a.cell-link:hover { color: var(--accent-hover); text-decoration: underline; }
+
+/* Button row in cells — prevent overflow */
+.cell-btn-row {
+  display: flex; gap: 4px; flex-wrap: wrap; overflow: hidden; white-space: nowrap;
+}

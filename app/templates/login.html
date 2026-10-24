@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% block body %}
+<style>
+    .login-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+    }
+    /* Subtle ambient circles */
+    .login-page::before {
+        content: '';
+        position: absolute;
+        width: 640px; height: 640px;
+        background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+        top: -180px; right: -120px;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .login-card {
+        width: 920px; min-height: 520px;
+        background: var(--surface);
+        border-radius: var(--radius-2xl);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        overflow: hidden;
+        position: relative;
+        z-index: 1;
+        border: 1px solid var(--border-light);
+    }
+
+    /* Left: Illustration */
+    .login-left {
+        width: 46%;
+        background: var(--bg-subtle);
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+    .login-left svg {
+        width: 82%;
+        height: auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Right: Form */
+    .login-right {
+        width: 54%;
+        padding: 56px 64px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .login-brand {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-bottom: var(--space-2);
+    }
+    .login-brand-dot {
+        width: 36px; height: 36px;
+        border-radius: var(--radius);
+        background: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: var(--text-lg);
+    }
+    .login-heading {
+        font-size: var(--text-3xl);
+        font-weight: var(--weight-bold);
+        color: var(--ink-heavy);
+        letter-spacing: var(--tracking-tight);
+        margin-bottom: var(--space-1);
+    }
+    .login-subtitle {
+        font-size: var(--text-sm);
+        color: var(--ink-muted);
+        margin-bottom: var(--space-8);
+    }
+
+    /* Input groups */
+    .input-group {
+        position: relative;
+        margin-bottom: var(--space-5);
+    }
+    .login-input {
+        width: 100%; height: 52px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px var(--space-4) var(--space-2);
+        font-size: var(--text-base);
+        font-family: var(--font-sans);
+        color: var(--ink);
+        background: var(--bg);
+        outline: none;
+        transition: all var(--duration-200) var(--ease-out);
+        box-sizing: border-box;
+    }
+    .login-input:focus {
+        border-color: var(--accent);
+        background: var(--surface);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .login-input::placeholder { color: transparent; }
+    .login-label {
+        position: absolute;
+        left: var(--space-4);
+        top: 16px;
+        font-size: var(--text-sm);
+        color: var(--ink-placeholder);
+        pointer-events: none;
+        transition: all var(--duration-150) var(--ease-out);
+    }
+    .login-input:focus ~ .login-label,
+    .login-input:not(:placeholder-shown) ~ .login-label {
+        top: 6px;
+        font-size: var(--text-xs);
+        color: var(--accent-text);
+        font-weight: var(--weight-medium);
+    }
+
+    .login-forgot {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: var(--space-4);
+        margin-top: calc(-1 * var(--space-3));
+    }
+    .login-forgot a {
+        font-size: var(--text-xs);
+        color: var(--ink-muted);
+        text-decoration: none;
+    }
+    .login-forgot a:hover { color: var(--accent-text); }
+
+    .login-submit {
+        width: 100%;
+        height: 50px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-lg);
+        font-size: var(--text-base);
+        font-weight: var(--weight-semibold);
+        font-family: var(--font-sans);
+        cursor: pointer;
+        transition: all var(--duration-200) var(--ease-out);
+        letter-spacing: 3px;
+    }
+    .login-submit:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 4px 20px var(--accent-glow);
+    }
+    .login-submit:active {
+        background: var(--accent-press);
+        transform: scale(0.985);
+    }
+
+    .login-register {
+        text-align: center;
+        margin-top: var(--space-6);
+    }
+    .login-register a {
+        font-size: var(--text-xs);
+        color: var(--ink-faint);
+        text-decoration: none;
+        transition: color var(--duration-150) var(--ease-out);
+    }
+    .login-register a:hover { color: var(--accent-text); }
+
+    .login-error {
+        background: var(--error-bg);
+        color: var(--error);
+        padding: var(--space-3) var(--space-4);
+        border-radius: var(--radius);
+        margin-bottom: var(--space-5);
+        font-size: var(--text-sm);
+        border: 1px solid var(--error);
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+    }
+
+    @media (max-width: 960px) {
+        .login-card { width: 92vw; flex-direction: column; }
+        .login-left { width: 100%; height: 180px; }
+        .login-right { width: 100%; padding: 40px 32px; }
+        .login-left svg { width: 60%; }
+    }
+</style>
+
+<div class="login-page">
+    <div class="login-card">
+        <!-- Left: Brand Illustration -->
+        <div class="login-left">
+            <svg viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+                <!-- Background -->
+                <rect width="420" height="420" fill="none"/>
+                <!-- Data rings -->
+                <circle cx="210" cy="210" r="160" fill="none" stroke="oklch(0.88 0.005 25)" stroke-width="1.5" stroke-dasharray="6 6"/>
+                <circle cx="210" cy="210" r="130" fill="none" stroke="oklch(0.90 0.003 25)" stroke-width="1"/>
+                <circle cx="210" cy="210" r="95" fill="none" stroke="oklch(0.88 0.005 25)" stroke-width="1.5" stroke-dasharray="4 6"/>
+
+                <!-- Central node (accent) -->
+                <circle cx="210" cy="210" r="28" fill="var(--accent)" opacity="0.95"/>
+                <circle cx="210" cy="210" r="14" fill="#fff" opacity="0.9"/>
+
+                <!-- Orbiting nodes -->
+                <circle cx="210" cy="70" r="10" fill="var(--accent)" opacity="0.7"/>
+                <line x1="210" y1="80" x2="210" y2="182" stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
+
+                <circle cx="340" cy="160" r="12" fill="var(--accent)" opacity="0.55"/>
+                <line x1="328" y1="165" x2="238" y2="204" stroke="var(--accent)" stroke-width="1" opacity="0.20"/>
+
+                <circle cx="310" cy="300" r="9" fill="var(--accent)" opacity="0.65"/>
+                <line x1="302" y1="293" x2="236" y2="224" stroke="var(--accent)" stroke-width="1" opacity="0.20"/>
+
+                <circle cx="120" cy="310" r="11" fill="var(--accent)" opacity="0.55"/>
+                <line x1="130" y1="300" x2="195" y2="232" stroke="var(--accent)" stroke-width="1" opacity="0.20"/>
+
+                <circle cx="90" cy="160" r="10" fill="var(--accent)" opacity="0.6"/>
+                <line x1="100" y1="165" x2="185" y2="202" stroke="var(--accent)" stroke-width="1" opacity="0.20"/>
+
+                <!-- Small data dots -->
+                <circle cx="280" cy="110" r="4" fill="color-mix(in srgb, var(--accent) 50%, transparent)"/>
+                <circle cx="350" cy="250" r="5" fill="color-mix(in srgb, var(--accent) 40%, transparent)"/>
+                <circle cx="70" cy="240" r="4" fill="color-mix(in srgb, var(--accent) 45%, transparent)"/>
+                <circle cx="170" cy="350" r="5" fill="color-mix(in srgb, var(--accent) 40%, transparent)"/>
+                <circle cx="260" cy="340" r="3" fill="color-mix(in srgb, var(--accent) 50%, transparent)"/>
+                <circle cx="130" cy="100" r="3" fill="color-mix(in srgb, var(--accent) 45%, transparent)"/>
+
+                <!-- Bottom text -->
+                <text x="210" y="385" text-anchor="middle" font-family="'Noto Sans SC', sans-serif" font-size="14" font-weight="600" fill="oklch(0.42 0.005 25)" letter-spacing="2">InsightAgent</text>
+            </svg>
+        </div>
+
+        <!-- Right: Login Form -->
+        <div class="login-right">
+            <div class="login-brand">
+                <div class="login-brand-dot"><i class="fas fa-eye"></i></div>
+            </div>
+            <h1 class="login-heading">欢迎登录</h1>
+            <p class="login-subtitle">智能瞭望与智能问数平台</p>
+
+            {% if error %}
+            <div class="login-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+            {% end %}
+
+            <form method="post" action="/auth/login">
+                {% module xsrf_form_html() %}
+                <div class="input-group">
+                    <input type="text" name="username" value="admin" required placeholder=" " autocomplete="off" class="login-input" id="username">
+                    <label class="login-label" for="username">账号</label>
+                </div>
+                <div class="input-group">
+                    <input type="password" name="password" value="admin888" required placeholder=" " autocomplete="off" class="login-input" id="password">
+                    <label class="login-label" for="password">密码</label>
+                </div>
+                <div class="login-forgot">
+                    <a href="javascript:layer.msg('请联系管理员重置密码');">忘记密码？</a>
+                </div>
+                <button type="submit" class="login-submit">登 录</button>
+                <div class="login-register">
+                    <a href="/register">没有账号？去注册 →</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% end %}
+
+{% block script %}
+<script>
+layui.use(['layer'], function(){
+    var layer = layui.layer;
+    var errorMsg = "{% if error %}{{ error }}{% end %}";
+    if (errorMsg) { layer.msg(errorMsg, {icon: 2, anim: 6}); }
+});
+</script>
+{% end %}

@@ -1,0 +1,73 @@
+/* Workspace layout: shared by every page, after all legacy page styles. */
+body { font-size: 14px; }
+.admin-page, .page-container { max-width: none; padding: 28px 32px 40px; margin: 0; }
+.page-header { align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.page-title { font-size: 24px; letter-spacing: -.5px; gap: 10px; }
+.page-title > svg, .page-title > i { color: var(--accent); font-size: 20px; }
+.page-subtitle { margin-top: 8px; font-size: 13px; color: var(--ink-muted); }
+.layui-card, .card { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 6px #15233903; }
+.layui-card-body { padding: 20px; }
+.layui-table-tool { padding: 0 0 18px; background: transparent; border: 0; }
+.layui-table-view .layui-table th { background: #f5f7fb; color: #65748b; font-weight: 500; border-color: var(--border-light); }
+.layui-table-view .layui-table td { border-color: var(--border-light); }
+.layui-table-view .layui-table tbody tr:hover { background: #f7f9ff; }
+.layui-table-view .layui-table-cell { height: 50px; padding-block: 13px; }
+.layui-table-view .layui-table-cell:has(.layui-btn-xs) { height: 50px; padding-block: 11px; gap: 8px; }
+.layui-table-cell .layui-btn-xs { background: transparent !important; color: var(--accent) !important; border-color: transparent !important; padding-inline: 6px; min-height: 28px; }
+.layui-table-cell .layui-btn-xs:hover { background: var(--accent-subtle) !important; }
+.layui-table-cell .layui-btn-danger { color: #d14855 !important; }
+.layui-table-cell .layui-btn-danger:hover { background: #fff0f1 !important; }
+.search-bar { background: var(--bg-subtle); padding: 14px; border-radius: 8px; gap: 10px; }
+.layui-table-tool-self > div { border: 1px solid var(--border); border-radius: 6px; color: var(--ink-muted); }
+.app-shell .layui-header { height: 64px; background: #fff; border-bottom: 1px solid var(--border); box-shadow: none; }
+.app-shell .layui-logo { height: 64px; width: 232px; color: var(--ink-heavy); font-size: 17px; font-weight: 700; padding-inline: 24px; }
+.app-shell .brand-dot { background: var(--accent); border-radius: 4px; width: 12px; height: 12px; box-shadow: 0 0 0 5px var(--accent-subtle); }
+.app-shell .layui-side { top: 64px; width: 232px; background: #fff; border-right: 1px solid var(--border); transition: transform .2s; }
+.app-shell .layui-side-scroll { width: 232px !important; padding: 20px 12px; }
+.app-shell .layui-nav-tree { width: 100%; background: transparent; padding: 0; }
+.app-shell .layui-body { top: 64px !important; left: 232px !important; transition: left .2s; }
+.app-shell .layui-nav-tree .layui-nav-item > a, .workspace-home { display: flex; align-items: center; gap: 10px; min-height: 40px; line-height: 22px; padding: 9px 14px; margin-bottom: 4px; color: #55647b; border-radius: 7px; font-size: 13px; }
+.app-shell .layui-nav-tree .layui-nav-item > a:hover, .workspace-home:hover { background: #f4f6fa; color: var(--ink); }
+.app-shell .layui-nav-tree a.is-current, .workspace-home.is-current { background: var(--accent-subtle) !important; color: var(--accent) !important; font-weight: 600; box-shadow: none; }
+.nav-section-label { padding: 20px 14px 9px; color: #97a1b2; font-size: 11px; letter-spacing: 1px; }
+.workspace-topbar { position: absolute; left: 252px; height: 64px; display: flex; align-items: center; gap: 16px; }
+.sidebar-toggle { width: 32px; height: 32px; display: inline-flex; justify-content: center; align-items: center; border: 1px solid var(--border); background: #fff; border-radius: 7px; color: var(--ink-muted); cursor: pointer; }
+.workspace-breadcrumb { color: var(--ink-faint); font-size: 13px; }
+.workspace-breadcrumb span { margin: 0 12px; color: #c7cfda; }
+.workspace-breadcrumb strong { color: var(--ink); font-weight: 500; }
+.app-shell .layui-layout-right { height: 64px; background: transparent; }
+.app-shell .layui-layout-right > .layui-nav-item { line-height: 64px; }
+.app-shell.nav-collapsed .layui-side { transform: translateX(-100%); }
+.app-shell.nav-collapsed .layui-body { left: 0 !important; }
+.workspace-welcome { padding: 30px; border: 1px solid #dce5fb; background: linear-gradient(110deg,#eef3ff,#fff 85%); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.eyebrow { display: block; color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 14px; }
+.workspace-welcome h2 { font-size: 25px; margin-bottom: 10px; }
+.workspace-welcome p { font-size: 13px; color: var(--ink-muted); }
+.welcome-actions { display: flex; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; margin: 28px 0 16px; }
+.section-heading h2 { font-size: 17px; }
+.section-heading span { color: var(--ink-faint); font-size: 12px; }
+.quick-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.quick-card { text-align: left; padding: 22px; position: relative; }
+.quick-card .qc-icon { margin: 0 0 18px; }
+.quick-card::after { content: '↗'; position: absolute; right: 20px; top: 20px; color: #a7b4c9; }
+.quick-card .qc-desc { line-height: 1.7; }
+.stat-item { box-shadow: none; padding: 20px; }
+.stat-value { font-size: 28px; font-variant-numeric: tabular-nums; }
+@media (min-width: 1800px) { .admin-page, .page-container { padding-inline: 48px; } }
+@media (max-width: 1100px) { .workspace-welcome { align-items: flex-start; flex-direction: column; } .quick-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 768px) {
+  .admin-page, .page-container { padding: 20px 16px 28px; }
+  .app-shell .layui-logo { display: none; }
+  .workspace-topbar { left: 16px; }
+  .app-shell .layui-body { left: 0 !important; }
+  .app-shell .layui-side { z-index: 1000; width: 232px; box-shadow: 8px 0 24px #15233912; }
+  .layui-card-body { padding: 14px; }
+  .page-title { font-size: 21px; }
+  .workspace-welcome { padding: 22px; }
+  .workspace-welcome h2 { font-size: 22px; }
+  .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+  .stat-item { padding: 14px; gap: 10px; }
+  .stat-icon { width: 36px; height: 36px; }
+}
+@media (max-width: 460px) { .quick-grid { grid-template-columns: 1fr; } .workspace-breadcrumb { font-size: 12px; } }

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ static_url('dist/bootstrap-5.3.8-dist/bootstrap-5.3.8-dist/css/bootstrap.min.css') }}">
+
+    <!-- Layui -->
+    <link rel="stylesheet" href="{{ static_url('dist/layui-v2.13.6/layui-v2.13.6/layui/css/layui.css') }}">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="{{ static_url('dist/fontawesome-free-5.15.4-web/fontawesome-free-5.15.4-web/css/svg-with-js.min.css') }}">
+
+    <!-- InsightAgent Design System -->
+    <link rel="stylesheet" href="{{ static_url('css/base.css') }}">
+    {% block style %}{% end %}
+    <link rel="stylesheet" href="{{ static_url('css/components.css') }}">
+    <link rel="stylesheet" href="{{ static_url('css/workspace.css') }}">
+    <link rel="stylesheet" href="{{ static_url('css/product.css') }}">
+    <link rel="stylesheet" href="{{ static_url('css/forms.css') }}">
+    <link rel="stylesheet" href="{{ static_url('css/management-cards.css') }}">
+    <link rel="stylesheet" href="{{ static_url('css/news-qa.css') }}">
+</head>
+<body>
+    {% block body %}{% end %}
+
+    <!-- Bootstrap JS -->
+    <script src="{{ static_url('dist/bootstrap-5.3.8-dist/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- Layui JS -->
+    <script src="{{ static_url('dist/layui-v2.13.6/layui-v2.13.6/layui/layui.js') }}"></script>
+
+    <!-- FontAwesome JS -->
+    <script defer src="{{ static_url('dist/fontawesome-free-5.15.4-web/fontawesome-free-5.15.4-web/js/all.min.js') }}"></script>
+
+    <script src="{{ static_url('js/base.js') }}"></script>
+    <script src="{{ static_url('vendor/marked.umd.js') }}"></script>
+    <script src="{{ static_url('vendor/purify.min.js') }}"></script>
+    <script src="{{ static_url('js/news-qa.js') }}"></script>
+    {% block script %}{% end %}
+</body>
+</html>
