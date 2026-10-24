@@ -48,3 +48,8 @@ __pycache__/
 !/docs/screenshots/workflow/14-csv-followup.png
 !/docs/screenshots/workflow/19-group-news-brief.png
 !/docs/screenshots/workflow/20-group-weather-result.png
+
+# Reviewed API and employee configuration screenshots; no real keys.
+!/docs/screenshots/weather-skill-config.png
+!/docs/screenshots/weather-api-fields.png
+!/docs/screenshots/weather-employee-config.png
