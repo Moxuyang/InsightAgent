@@ -34,3 +34,17 @@ __pycache__/
 !/docs/screenshots/ai-chat.png
 # Extracted runtime resources are already included.
 /app/static/dist/*.zip
+
+# Reviewed workflow screenshots used by the README.
+!/docs/screenshots/workflow/
+/docs/screenshots/workflow/*
+!/docs/screenshots/workflow/02-collected-selection.png
+!/docs/screenshots/workflow/05-extraction-result.png
+!/docs/screenshots/workflow/07-watch-matches.png
+!/docs/screenshots/workflow/08-ai-monitor-answer.png
+!/docs/screenshots/workflow/09-ai-ten-news.png
+!/docs/screenshots/workflow/10-ai-body-summary.png
+!/docs/screenshots/workflow/13-csv-analysis.png
+!/docs/screenshots/workflow/14-csv-followup.png
+!/docs/screenshots/workflow/19-group-news-brief.png
+!/docs/screenshots/workflow/20-group-weather-result.png
